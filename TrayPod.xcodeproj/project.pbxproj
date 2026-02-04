@@ -19,6 +19,11 @@
 		A1000010001 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010000 /* HapticManager.swift */; };
 		A1000011001 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000011000 /* SoundManager.swift */; };
 		A1000012001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000012000 /* Assets.xcassets */; };
+		A1000015001 /* Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000015000 /* Track.swift */; };
+		A1000016001 /* PlayerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000016000 /* PlayerState.swift */; };
+		A1000017001 /* MusicServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000017000 /* MusicServiceProtocol.swift */; };
+		A1000018001 /* SpotifyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018000 /* SpotifyService.swift */; };
+		A1000019001 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019000 /* PlayerViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +42,11 @@
 		A1000012000 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000013000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1000014000 /* TrayPod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrayPod.entitlements; sourceTree = "<group>"; };
+		A1000015000 /* Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Track.swift; sourceTree = "<group>"; };
+		A1000016000 /* PlayerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerState.swift; sourceTree = "<group>"; };
+		A1000017000 /* MusicServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicServiceProtocol.swift; sourceTree = "<group>"; };
+		A1000018000 /* SpotifyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyService.swift; sourceTree = "<group>"; };
+		A1000019000 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +83,7 @@
 				A1VIEWGROUP0 /* Views */,
 				A1VMGROUP00 /* ViewModels */,
 				A1MODGROUP0 /* Models */,
+				A1SVCGROUP0 /* Services */,
 				A1UTILGROUP /* Utilities */,
 				A1RESGROUP0 /* Resources */,
 				A1000013000 /* Info.plist */,
@@ -104,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000006000 /* iPodViewModel.swift */,
+				A1000019000 /* PlayerViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -113,8 +125,19 @@
 			children = (
 				A1000007000 /* iPodColor.swift */,
 				A1000008000 /* MenuItem.swift */,
+				A1000015000 /* Track.swift */,
+				A1000016000 /* PlayerState.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		A1SVCGROUP0 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A1000017000 /* MusicServiceProtocol.swift */,
+				A1000018000 /* SpotifyService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		A1UTILGROUP /* Utilities */ = {
@@ -215,6 +238,11 @@
 				A1000009001 /* PersistenceManager.swift in Sources */,
 				A1000010001 /* HapticManager.swift in Sources */,
 				A1000011001 /* SoundManager.swift in Sources */,
+				A1000015001 /* Track.swift in Sources */,
+				A1000016001 /* PlayerState.swift in Sources */,
+				A1000017001 /* MusicServiceProtocol.swift in Sources */,
+				A1000018001 /* SpotifyService.swift in Sources */,
+				A1000019001 /* PlayerViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

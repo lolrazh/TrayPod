@@ -157,56 +157,119 @@ struct NowPlayingView: View {
 
     private let screenTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
 
-    var body: some View {
-        VStack(spacing: 8) {
-            // Album art placeholder
-            RoundedRectangle(cornerRadius: 4)
-                .fill(screenTextColor.opacity(0.1))
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Image(systemName: "music.note")
-                        .font(.system(size: 30))
-                        .foregroundColor(screenTextColor.opacity(0.3))
-                )
+    private var playerState: PlayerState {
+        viewModel.playerViewModel.state
+    }
 
-            // Track info
-            VStack(spacing: 2) {
-                Text("No Track Playing")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+    private var track: Track? {
+        playerState.currentTrack
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            // Play state indicator and volume
+            HStack {
+                // Play/Pause indicator
+                Image(systemName: playerState.isPlaying ? "play.fill" : "pause.fill")
+                    .font(.system(size: 8))
                     .foregroundColor(screenTextColor)
 
-                Text("Open a music app")
-                    .font(.system(size: 10, design: .rounded))
-                    .foregroundColor(screenTextColor.opacity(0.6))
-            }
+                Spacer()
 
-            // Progress bar placeholder
-            GeometryReader { geo in
+                // Volume indicator
+                HStack(spacing: 1) {
+                    Image(systemName: "speaker.fill")
+                        .font(.system(size: 7))
+                    volumeBar
+                }
+                .foregroundColor(screenTextColor)
+            }
+            .frame(height: 12)
+
+            if let track = track {
+                // Track info
                 VStack(spacing: 2) {
+                    Text(track.title)
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .foregroundColor(screenTextColor)
+                        .lineLimit(1)
+
+                    Text(track.artist)
+                        .font(.system(size: 10, design: .rounded))
+                        .foregroundColor(screenTextColor.opacity(0.7))
+                        .lineLimit(1)
+
+                    Text(track.album)
+                        .font(.system(size: 9, design: .rounded))
+                        .foregroundColor(screenTextColor.opacity(0.5))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                // Progress bar
+                progressBar
+            } else {
+                // No track playing
+                Spacer()
+
+                VStack(spacing: 4) {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 24))
+                        .foregroundColor(screenTextColor.opacity(0.3))
+
+                    Text(viewModel.playerViewModel.activeServiceName)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundColor(screenTextColor.opacity(0.5))
+
+                    if !viewModel.playerViewModel.hasActiveService {
+                        Text("Open Spotify to control")
+                            .font(.system(size: 9, design: .rounded))
+                            .foregroundColor(screenTextColor.opacity(0.4))
+                    }
+                }
+
+                Spacer()
+            }
+        }
+    }
+
+    private var volumeBar: some View {
+        HStack(spacing: 1) {
+            ForEach(0..<8) { i in
+                Rectangle()
+                    .fill(screenTextColor.opacity(Float(i) / 8.0 < playerState.volume ? 1.0 : 0.2))
+                    .frame(width: 3, height: 6)
+            }
+        }
+    }
+
+    private var progressBar: some View {
+        GeometryReader { geo in
+            VStack(spacing: 2) {
+                // Progress track
+                ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2)
                         .fill(screenTextColor.opacity(0.2))
                         .frame(height: 4)
-                        .overlay(
-                            HStack {
-                                RoundedRectangle(cornerRadius: 2)
-                                    .fill(screenTextColor)
-                                    .frame(width: geo.size.width * 0.3)
-                                Spacer()
-                            }
-                        )
 
-                    HStack {
-                        Text("0:00")
-                            .font(.system(size: 8))
-                        Spacer()
-                        Text("-0:00")
-                            .font(.system(size: 8))
-                    }
-                    .foregroundColor(screenTextColor.opacity(0.6))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(screenTextColor)
+                        .frame(width: geo.size.width * playerState.progress, height: 4)
                 }
+
+                // Time labels
+                HStack {
+                    Text(Track.formatTime(playerState.playbackPosition))
+                        .font(.system(size: 8, design: .monospaced))
+                    Spacer()
+                    Text("-" + Track.formatTime(playerState.remainingTime))
+                        .font(.system(size: 8, design: .monospaced))
+                }
+                .foregroundColor(screenTextColor.opacity(0.6))
             }
-            .frame(height: 20)
         }
+        .frame(height: 20)
     }
 }
 

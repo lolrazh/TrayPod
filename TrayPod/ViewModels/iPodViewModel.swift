@@ -27,9 +27,15 @@ class iPodViewModel: ObservableObject {
         }
     }
 
+    // Player state
+    let playerViewModel = PlayerViewModel()
+
     // Scroll accumulator for smooth scrolling
     private var scrollAccumulator: CGFloat = 0
     private let scrollThreshold: CGFloat = 25.0
+
+    // Volume control on Now Playing
+    private let volumeStep: Float = 0.05
 
     // MARK: - Menu Items
 
@@ -97,27 +103,35 @@ class iPodViewModel: ObservableObject {
     }
 
     private func moveSelection(by offset: Int) {
-        let itemCount: Int
-
         switch currentScreen {
         case .main, .settings:
-            itemCount = currentMenuItems.count
+            let itemCount = currentMenuItems.count
+            guard itemCount > 0 else { return }
+
+            let newIndex = selectedIndex + offset
+            let clampedIndex = max(0, min(itemCount - 1, newIndex))
+
+            if clampedIndex != selectedIndex {
+                selectedIndex = clampedIndex
+                playFeedback()
+            }
+
         case .colorSelection:
-            itemCount = colorCount
+            let itemCount = colorCount
+            guard itemCount > 0 else { return }
+
+            let newIndex = selectedIndex + offset
+            let clampedIndex = max(0, min(itemCount - 1, newIndex))
+
+            if clampedIndex != selectedIndex {
+                selectedIndex = clampedIndex
+                playFeedback()
+            }
+
         case .nowPlaying:
-            // On now playing, wheel controls volume (will be implemented in M3)
-            return
-        }
-
-        guard itemCount > 0 else { return }
-
-        let newIndex = selectedIndex + offset
-
-        // Clamp to valid range
-        let clampedIndex = max(0, min(itemCount - 1, newIndex))
-
-        if clampedIndex != selectedIndex {
-            selectedIndex = clampedIndex
+            // On now playing, wheel controls volume
+            let volumeDelta = Float(offset) * volumeStep
+            playerViewModel.adjustVolume(by: volumeDelta)
             playFeedback()
         }
     }
@@ -136,8 +150,7 @@ class iPodViewModel: ObservableObject {
             case .navigate(let screen):
                 navigateTo(screen)
             case .togglePlayPause:
-                // Will be implemented with PlayerViewModel
-                break
+                playerViewModel.togglePlayPause()
             case .custom(let action):
                 action()
             }
@@ -149,8 +162,8 @@ class iPodViewModel: ObservableObject {
             selectedColor = colors[selectedIndex]
 
         case .nowPlaying:
-            // Toggle play/pause (will be implemented in M3)
-            break
+            // Toggle play/pause
+            playerViewModel.togglePlayPause()
         }
     }
 
@@ -161,17 +174,17 @@ class iPodViewModel: ObservableObject {
 
     func playPauseButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel in M3
+        playerViewModel.togglePlayPause()
     }
 
     func nextButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel in M3
+        playerViewModel.nextTrack()
     }
 
     func previousButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel in M3
+        playerViewModel.previousTrack()
     }
 
     // MARK: - Navigation
