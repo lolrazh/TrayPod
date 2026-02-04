@@ -68,10 +68,10 @@ open ~/Library/Developer/Xcode/DerivedData/TrayPod-*/Build/Products/Debug/TrayPo
 - [x] Progress bar with time display
 
 ### ⬜ Milestone 4: Polish & Persistence
-- [ ] State persistence (last screen, volume level)
+- [ ] Volume level persistence (NOT last screen)
 - [ ] Media key capture (keyboard play/pause/skip)
 - [ ] Auto-launch option in settings
-- [ ] Improved error handling
+- [ ] Improved error handling (when Spotify not running)
 
 ### ⬜ Milestone 5: Apple Music Integration
 - [ ] AppleMusicService via MusicKit
