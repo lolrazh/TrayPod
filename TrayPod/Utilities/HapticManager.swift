@@ -6,23 +6,24 @@ class HapticManager {
     private init() {}
 
     func click() {
-        NSHapticFeedbackManager.defaultPerformer.perform(
-            .generic,
-            performanceTime: .default
-        )
-    }
-
-    func levelChange() {
-        NSHapticFeedbackManager.defaultPerformer.perform(
-            .levelChange,
-            performanceTime: .default
-        )
-    }
-
-    func alignment() {
+        // Use alignment for stronger, more noticeable feedback
         NSHapticFeedbackManager.defaultPerformer.perform(
             .alignment,
-            performanceTime: .default
+            performanceTime: .now
         )
+    }
+
+    func strong() {
+        // Double tap for extra emphasis
+        NSHapticFeedbackManager.defaultPerformer.perform(
+            .levelChange,
+            performanceTime: .now
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            NSHapticFeedbackManager.defaultPerformer.perform(
+                .levelChange,
+                performanceTime: .now
+            )
+        }
     }
 }

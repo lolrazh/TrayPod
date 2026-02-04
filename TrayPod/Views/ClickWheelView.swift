@@ -64,6 +64,7 @@ struct ClickWheelView: View {
                 onCenterTap: { viewModel.centerButtonPressed() },
                 onScroll: { delta in viewModel.scroll(delta: delta) }
             )
+            .frame(width: wheelSize, height: wheelSize)
         }
         .frame(width: wheelSize, height: wheelSize)
     }
@@ -131,7 +132,7 @@ struct WheelGestureView: NSViewRepresentable {
     let onScroll: (CGFloat) -> Void
 
     func makeNSView(context: Context) -> WheelNSView {
-        let view = WheelNSView()
+        let view = WheelNSView(frame: NSRect(x: 0, y: 0, width: wheelSize, height: wheelSize))
         view.wheelSize = wheelSize
         view.centerButtonSize = centerButtonSize
         view.onZonePress = { zone in
@@ -199,22 +200,25 @@ class WheelNSView: NSView {
 
     override func scrollWheel(with event: NSEvent) {
         // Use scrollingDeltaY for smooth trackpad scrolling
+        // Lower threshold to catch more scroll events
         let delta = event.scrollingDeltaY
-        if abs(delta) > 0.5 {
+        if abs(delta) > 0.1 {
             onScroll?(delta)
         }
     }
 
     private func zoneForLocation(_ location: CGPoint, center: CGPoint) -> ClickWheelView.WheelZone? {
         let dx = location.x - center.x
-        let dy = center.y - location.y // Flip Y for standard math coordinates
+        // NSView: Y increases upward, so location.y > center.y means ABOVE center
+        let dy = location.y - center.y
 
-        // Calculate angle in degrees (0 = right, 90 = up, 180 = left, -90 = down)
+        // Calculate angle in degrees
+        // 0° = right, 90° = top, 180°/-180° = left, -90° = bottom
         let angle = atan2(dy, dx) * 180 / .pi
 
         // Determine zone based on angle
         // Top (Menu): 45° to 135°
-        // Left (Back): 135° to 180° or -180° to -135°
+        // Left (Back): 135° to 180° OR -180° to -135°
         // Bottom (Play/Pause): -135° to -45°
         // Right (Forward): -45° to 45°
 
