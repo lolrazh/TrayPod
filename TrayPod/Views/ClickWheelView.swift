@@ -3,16 +3,13 @@ import SwiftUI
 struct ClickWheelView: View {
     @ObservedObject var viewModel: iPodViewModel
 
-    @State private var lastAngle: CGFloat?
-    @State private var accumulatedRotation: CGFloat = 0
     @State private var pressedZone: WheelZone?
     @State private var centerPressed: Bool = false
 
     private let wheelSize: CGFloat = 260
     private let centerButtonSize: CGFloat = 90
-    private let rotationThreshold: CGFloat = 0.12 // Radians needed for one "click"
 
-    enum WheelZone {
+    enum WheelZone: Equatable {
         case menu, forward, back, playPause
     }
 
@@ -56,30 +53,19 @@ struct ClickWheelView: View {
                 .shadow(color: .black.opacity(centerPressed ? 0.05 : 0.15), radius: centerPressed ? 1 : 3, x: 0, y: centerPressed ? 0 : 2)
                 .scaleEffect(centerPressed ? 0.97 : 1.0)
                 .animation(.easeInOut(duration: 0.1), value: centerPressed)
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            if !centerPressed {
-                                centerPressed = true
-                            }
-                        }
-                        .onEnded { _ in
-                            centerPressed = false
-                            viewModel.centerButtonPressed()
-                        }
-                )
 
-            // Interactive click zones
-            clickZones
+            // Unified gesture handler for the whole wheel
+            WheelGestureView(
+                wheelSize: wheelSize,
+                centerButtonSize: centerButtonSize,
+                pressedZone: $pressedZone,
+                centerPressed: $centerPressed,
+                onZoneTap: handleZoneTap,
+                onCenterTap: { viewModel.centerButtonPressed() },
+                onScroll: { delta in viewModel.scroll(delta: delta) }
+            )
         }
         .frame(width: wheelSize, height: wheelSize)
-        .gesture(circularDragGesture)
-        .onScrollWheel { delta in
-            viewModel.scroll(delta: delta)
-        }
-        .background(
-            KeyboardHandlerView(viewModel: viewModel, rotationThreshold: rotationThreshold)
-        )
     }
 
     // MARK: - Click Zone Labels
@@ -119,282 +105,128 @@ struct ClickWheelView: View {
         .animation(.easeInOut(duration: 0.08), value: pressedZone)
     }
 
-    // MARK: - Click Zones
-
-    private var clickZones: some View {
-        let zoneRadius = wheelSize / 2
-        let innerRadius = centerButtonSize / 2 + 10
-
-        return ZStack {
-            // Menu button (top)
-            InteractiveClickZone(
-                startAngle: -60,
-                endAngle: -120,
-                innerRadius: innerRadius,
-                outerRadius: zoneRadius,
-                isPressed: pressedZone == .menu
-            ) { pressed in
-                pressedZone = pressed ? .menu : nil
-            } onTap: {
-                viewModel.menuButtonPressed()
-            }
-
-            // Forward button (right)
-            InteractiveClickZone(
-                startAngle: 30,
-                endAngle: -30,
-                innerRadius: innerRadius,
-                outerRadius: zoneRadius,
-                isPressed: pressedZone == .forward
-            ) { pressed in
-                pressedZone = pressed ? .forward : nil
-            } onTap: {
-                viewModel.nextButtonPressed()
-            }
-
-            // Back button (left)
-            InteractiveClickZone(
-                startAngle: 150,
-                endAngle: -150,
-                innerRadius: innerRadius,
-                outerRadius: zoneRadius,
-                isPressed: pressedZone == .back
-            ) { pressed in
-                pressedZone = pressed ? .back : nil
-            } onTap: {
-                viewModel.previousButtonPressed()
-            }
-
-            // Play/Pause button (bottom)
-            InteractiveClickZone(
-                startAngle: 120,
-                endAngle: 60,
-                innerRadius: innerRadius,
-                outerRadius: zoneRadius,
-                isPressed: pressedZone == .playPause
-            ) { pressed in
-                pressedZone = pressed ? .playPause : nil
-            } onTap: {
-                viewModel.playPauseButtonPressed()
-            }
-        }
-    }
-
-    // MARK: - Circular Drag Gesture
-
-    private var circularDragGesture: some Gesture {
-        DragGesture(minimumDistance: 5)
-            .onChanged { value in
-                let center = CGPoint(x: wheelSize / 2, y: wheelSize / 2)
-                let location = value.location
-
-                // Check if we're on the wheel (not center button)
-                let distanceFromCenter = hypot(location.x - center.x, location.y - center.y)
-                let minRadius = centerButtonSize / 2 + 15
-                let maxRadius = wheelSize / 2
-
-                guard distanceFromCenter > minRadius && distanceFromCenter < maxRadius else {
-                    lastAngle = nil
-                    return
-                }
-
-                let currentAngle = atan2(location.y - center.y, location.x - center.x)
-
-                if let last = lastAngle {
-                    var delta = currentAngle - last
-
-                    // Handle wrap-around at ±π
-                    if delta > .pi {
-                        delta -= 2 * .pi
-                    } else if delta < -.pi {
-                        delta += 2 * .pi
-                    }
-
-                    accumulatedRotation += delta
-
-                    // Check if we've accumulated enough rotation for a "click"
-                    while abs(accumulatedRotation) >= rotationThreshold {
-                        let direction: CGFloat = accumulatedRotation > 0 ? 1 : -1
-                        viewModel.rotateWheel(delta: direction * rotationThreshold)
-                        accumulatedRotation -= direction * rotationThreshold
-                    }
-                }
-
-                lastAngle = currentAngle
-            }
-            .onEnded { _ in
-                lastAngle = nil
-                accumulatedRotation = 0
-            }
-    }
-
-}
-
-// MARK: - Keyboard Handler
-
-struct KeyboardHandlerView: NSViewRepresentable {
-    let viewModel: iPodViewModel
-    let rotationThreshold: CGFloat
-
-    func makeNSView(context: Context) -> KeyboardNSView {
-        let view = KeyboardNSView()
-        view.viewModel = viewModel
-        view.rotationThreshold = rotationThreshold
-        return view
-    }
-
-    func updateNSView(_ nsView: KeyboardNSView, context: Context) {
-        nsView.viewModel = viewModel
-    }
-}
-
-class KeyboardNSView: NSView {
-    var viewModel: iPodViewModel?
-    var rotationThreshold: CGFloat = 0.12
-
-    override var acceptsFirstResponder: Bool { true }
-
-    override func keyDown(with event: NSEvent) {
-        guard let viewModel = viewModel else {
-            super.keyDown(with: event)
-            return
-        }
-
-        Task { @MainActor in
-            switch event.keyCode {
-            case 126: // Up arrow
-                viewModel.rotateWheel(delta: -rotationThreshold)
-            case 125: // Down arrow
-                viewModel.rotateWheel(delta: rotationThreshold)
-            case 123: // Left arrow
-                viewModel.previousButtonPressed()
-            case 124: // Right arrow
-                viewModel.nextButtonPressed()
-            case 36, 49: // Return, Space
-                viewModel.centerButtonPressed()
-            case 53: // Escape
-                viewModel.menuButtonPressed()
-            default:
-                break
-            }
+    private func handleZoneTap(_ zone: WheelZone) {
+        switch zone {
+        case .menu:
+            viewModel.menuButtonPressed()
+        case .forward:
+            viewModel.nextButtonPressed()
+        case .back:
+            viewModel.previousButtonPressed()
+        case .playPause:
+            viewModel.playPauseButtonPressed()
         }
     }
 }
 
-// MARK: - Interactive Click Zone
+// MARK: - Wheel Gesture NSView
 
-struct InteractiveClickZone: View {
-    let startAngle: Double
-    let endAngle: Double
-    let innerRadius: CGFloat
-    let outerRadius: CGFloat
-    let isPressed: Bool
-    let onPressChange: (Bool) -> Void
-    let onTap: () -> Void
-
-    var body: some View {
-        ArcShape(
-            startAngle: Angle(degrees: startAngle),
-            endAngle: Angle(degrees: endAngle),
-            innerRadius: innerRadius,
-            outerRadius: outerRadius
-        )
-        .fill(isPressed ? Color.black.opacity(0.1) : Color.clear)
-        .contentShape(
-            ArcShape(
-                startAngle: Angle(degrees: startAngle),
-                endAngle: Angle(degrees: endAngle),
-                innerRadius: innerRadius,
-                outerRadius: outerRadius
-            )
-        )
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isPressed {
-                        onPressChange(true)
-                    }
-                }
-                .onEnded { _ in
-                    onPressChange(false)
-                    onTap()
-                }
-        )
-    }
-}
-
-struct ArcShape: Shape {
-    let startAngle: Angle
-    let endAngle: Angle
-    let innerRadius: CGFloat
-    let outerRadius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-
-        // Outer arc
-        path.addArc(
-            center: center,
-            radius: outerRadius,
-            startAngle: startAngle,
-            endAngle: endAngle,
-            clockwise: startAngle.degrees > endAngle.degrees
-        )
-
-        // Inner arc (reversed)
-        path.addArc(
-            center: center,
-            radius: innerRadius,
-            startAngle: endAngle,
-            endAngle: startAngle,
-            clockwise: startAngle.degrees <= endAngle.degrees
-        )
-
-        path.closeSubpath()
-        return path
-    }
-}
-
-// MARK: - Scroll Wheel Support
-
-struct ScrollWheelModifier: ViewModifier {
+struct WheelGestureView: NSViewRepresentable {
+    let wheelSize: CGFloat
+    let centerButtonSize: CGFloat
+    @Binding var pressedZone: ClickWheelView.WheelZone?
+    @Binding var centerPressed: Bool
+    let onZoneTap: (ClickWheelView.WheelZone) -> Void
+    let onCenterTap: () -> Void
     let onScroll: (CGFloat) -> Void
 
-    func body(content: Content) -> some View {
-        content.background(
-            ScrollWheelNSView(onScroll: onScroll)
-        )
-    }
-}
-
-struct ScrollWheelNSView: NSViewRepresentable {
-    let onScroll: (CGFloat) -> Void
-
-    func makeNSView(context: Context) -> NSView {
-        let view = ScrollDetectorView()
+    func makeNSView(context: Context) -> WheelNSView {
+        let view = WheelNSView()
+        view.wheelSize = wheelSize
+        view.centerButtonSize = centerButtonSize
+        view.onZonePress = { zone in
+            DispatchQueue.main.async { pressedZone = zone }
+        }
+        view.onCenterPress = { pressed in
+            DispatchQueue.main.async { centerPressed = pressed }
+        }
+        view.onZoneTap = onZoneTap
+        view.onCenterTap = onCenterTap
         view.onScroll = onScroll
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
-}
-
-class ScrollDetectorView: NSView {
-    var onScroll: ((CGFloat) -> Void)?
-
-    override var acceptsFirstResponder: Bool { true }
-
-    override func scrollWheel(with event: NSEvent) {
-        // Use both deltaY and scrollingDeltaY for better trackpad support
-        let delta = event.scrollingDeltaY != 0 ? event.scrollingDeltaY : event.deltaY * 10
-        onScroll?(delta)
+    func updateNSView(_ nsView: WheelNSView, context: Context) {
+        nsView.wheelSize = wheelSize
+        nsView.centerButtonSize = centerButtonSize
     }
 }
 
-extension View {
-    func onScrollWheel(_ action: @escaping (CGFloat) -> Void) -> some View {
-        modifier(ScrollWheelModifier(onScroll: action))
+class WheelNSView: NSView {
+    var wheelSize: CGFloat = 260
+    var centerButtonSize: CGFloat = 90
+
+    var onZonePress: ((ClickWheelView.WheelZone?) -> Void)?
+    var onCenterPress: ((Bool) -> Void)?
+    var onZoneTap: ((ClickWheelView.WheelZone) -> Void)?
+    var onCenterTap: (() -> Void)?
+    var onScroll: ((CGFloat) -> Void)?
+
+    private var currentZone: ClickWheelView.WheelZone?
+    private var isPressingCenter = false
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        let location = convert(event.locationInWindow, from: nil)
+        let center = CGPoint(x: bounds.midX, y: bounds.midY)
+        let distance = hypot(location.x - center.x, location.y - center.y)
+
+        if distance <= centerButtonSize / 2 {
+            // Center button pressed
+            isPressingCenter = true
+            onCenterPress?(true)
+        } else if distance <= wheelSize / 2 {
+            // Wheel zone pressed
+            if let zone = zoneForLocation(location, center: center) {
+                currentZone = zone
+                onZonePress?(zone)
+            }
+        }
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        if isPressingCenter {
+            isPressingCenter = false
+            onCenterPress?(false)
+            onCenterTap?()
+        } else if let zone = currentZone {
+            onZonePress?(nil)
+            onZoneTap?(zone)
+            currentZone = nil
+        }
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        // Use scrollingDeltaY for smooth trackpad scrolling
+        let delta = event.scrollingDeltaY
+        if abs(delta) > 0.5 {
+            onScroll?(delta)
+        }
+    }
+
+    private func zoneForLocation(_ location: CGPoint, center: CGPoint) -> ClickWheelView.WheelZone? {
+        let dx = location.x - center.x
+        let dy = center.y - location.y // Flip Y for standard math coordinates
+
+        // Calculate angle in degrees (0 = right, 90 = up, 180 = left, -90 = down)
+        let angle = atan2(dy, dx) * 180 / .pi
+
+        // Determine zone based on angle
+        // Top (Menu): 45° to 135°
+        // Left (Back): 135° to 180° or -180° to -135°
+        // Bottom (Play/Pause): -135° to -45°
+        // Right (Forward): -45° to 45°
+
+        if angle >= 45 && angle < 135 {
+            return .menu
+        } else if angle >= 135 || angle < -135 {
+            return .back
+        } else if angle >= -135 && angle < -45 {
+            return .playPause
+        } else {
+            return .forward
+        }
     }
 }
 
