@@ -109,11 +109,20 @@ struct MenuListView: View {
     private let highlightColor = Color(red: 0.2, green: 0.35, blue: 0.65)
 
     var body: some View {
-        VStack(spacing: 2) {
-            ForEach(Array(viewModel.currentMenuItems.enumerated()), id: \.element.id) { index, item in
-                menuRow(item: item, isSelected: index == viewModel.selectedIndex)
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 2) {
+                    ForEach(Array(viewModel.currentMenuItems.enumerated()), id: \.element.id) { index, item in
+                        menuRow(item: item, isSelected: index == viewModel.selectedIndex)
+                            .id(index)
+                    }
+                }
             }
-            Spacer()
+            .onChange(of: viewModel.selectedIndex) { newIndex in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    proxy.scrollTo(newIndex, anchor: .center)
+                }
+            }
         }
     }
 
@@ -208,18 +217,31 @@ struct ColorSelectionView: View {
     private let highlightColor = Color(red: 0.2, green: 0.35, blue: 0.65)
 
     var body: some View {
-        VStack(spacing: 2) {
-            ForEach(Array(iPodColor.allCases.enumerated()), id: \.element.id) { index, color in
-                colorRow(color: color, isSelected: color == viewModel.selectedColor)
-                    .onTapGesture {
-                        viewModel.selectColor(color)
+        ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 2) {
+                    ForEach(Array(iPodColor.allCases.enumerated()), id: \.element.id) { index, color in
+                        colorRow(
+                            color: color,
+                            isHighlighted: index == viewModel.selectedIndex,
+                            isCurrentColor: color == viewModel.selectedColor
+                        )
+                        .id(index)
+                        .onTapGesture {
+                            viewModel.selectColor(color)
+                        }
                     }
+                }
             }
-            Spacer()
+            .onChange(of: viewModel.selectedIndex) { newIndex in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    proxy.scrollTo(newIndex, anchor: .center)
+                }
+            }
         }
     }
 
-    private func colorRow(color: iPodColor, isSelected: Bool) -> some View {
+    private func colorRow(color: iPodColor, isHighlighted: Bool, isCurrentColor: Bool) -> some View {
         HStack {
             Circle()
                 .fill(color.bodyColor)
@@ -234,15 +256,15 @@ struct ColorSelectionView: View {
 
             Spacer()
 
-            if isSelected {
+            if isCurrentColor {
                 Image(systemName: "checkmark")
                     .font(.system(size: 10, weight: .bold))
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(isSelected ? highlightColor : Color.clear)
-        .foregroundColor(isSelected ? .white : screenTextColor)
+        .background(isHighlighted ? highlightColor : Color.clear)
+        .foregroundColor(isHighlighted ? .white : screenTextColor)
         .cornerRadius(4)
     }
 }

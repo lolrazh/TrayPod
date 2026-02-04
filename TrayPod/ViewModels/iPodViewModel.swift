@@ -27,6 +27,10 @@ class iPodViewModel: ObservableObject {
         }
     }
 
+    // Scroll accumulator for smooth scrolling
+    private var scrollAccumulator: CGFloat = 0
+    private let scrollThreshold: CGFloat = 25.0
+
     // MARK: - Menu Items
 
     var mainMenuItems: [MenuItem] {
@@ -59,6 +63,11 @@ class iPodViewModel: ObservableObject {
         }
     }
 
+    // For color selection screen
+    var colorCount: Int {
+        iPodColor.allCases.count
+    }
+
     // MARK: - Initialization
 
     init() {
@@ -70,54 +79,78 @@ class iPodViewModel: ObservableObject {
     // MARK: - Click Wheel Actions
 
     func rotateWheel(delta: CGFloat) {
-        // Positive delta = clockwise = scroll down
-        // Negative delta = counter-clockwise = scroll up
-        let sensitivity: CGFloat = 0.15
-        let steps = Int(delta / sensitivity)
-
-        if steps != 0 {
-            let newIndex = selectedIndex + steps
-            let itemCount = currentMenuItems.count
-
-            if itemCount > 0 {
-                selectedIndex = max(0, min(itemCount - 1, newIndex))
-                playFeedback()
-            }
-        }
+        // Each rotation "click" moves selection by 1
+        let direction = delta > 0 ? 1 : -1
+        moveSelection(by: direction)
     }
 
     func scroll(delta: CGFloat) {
-        // Trackpad scroll - similar to wheel rotation
-        let sensitivity: CGFloat = 30.0
-        let steps = Int(delta / sensitivity)
+        // Accumulate scroll for smoother trackpad experience
+        scrollAccumulator += delta
 
-        if steps != 0 {
-            let newIndex = selectedIndex - steps // Inverted for natural scrolling
-            let itemCount = currentMenuItems.count
+        // Check if we've scrolled enough to trigger a selection change
+        while abs(scrollAccumulator) >= scrollThreshold {
+            let direction = scrollAccumulator > 0 ? -1 : 1 // Inverted for natural scrolling
+            moveSelection(by: direction)
+            scrollAccumulator -= (scrollAccumulator > 0 ? scrollThreshold : -scrollThreshold)
+        }
+    }
 
-            if itemCount > 0 {
-                selectedIndex = max(0, min(itemCount - 1, newIndex))
-                playFeedback()
-            }
+    private func moveSelection(by offset: Int) {
+        let itemCount: Int
+
+        switch currentScreen {
+        case .main, .settings:
+            itemCount = currentMenuItems.count
+        case .colorSelection:
+            itemCount = colorCount
+        case .nowPlaying:
+            // On now playing, wheel controls volume (will be implemented in M3)
+            return
+        }
+
+        guard itemCount > 0 else { return }
+
+        let newIndex = selectedIndex + offset
+
+        // Clamp to valid range
+        let clampedIndex = max(0, min(itemCount - 1, newIndex))
+
+        if clampedIndex != selectedIndex {
+            selectedIndex = clampedIndex
+            playFeedback()
         }
     }
 
     func centerButtonPressed() {
         playFeedback()
 
-        let items = currentMenuItems
-        guard selectedIndex < items.count else { return }
+        switch currentScreen {
+        case .main, .settings:
+            let items = currentMenuItems
+            guard selectedIndex < items.count else { return }
 
-        let item = items[selectedIndex]
+            let item = items[selectedIndex]
 
-        switch item.action {
-        case .navigate(let screen):
-            navigateTo(screen)
-        case .togglePlayPause:
-            // Will be implemented with PlayerViewModel
+            switch item.action {
+            case .navigate(let screen):
+                navigateTo(screen)
+            case .togglePlayPause:
+                // Will be implemented with PlayerViewModel
+                break
+            case .custom(let action):
+                action()
+            }
+
+        case .colorSelection:
+            // Select the highlighted color
+            let colors = iPodColor.allCases
+            guard selectedIndex < colors.count else { return }
+            selectedColor = colors[selectedIndex]
+
+        case .nowPlaying:
+            // Toggle play/pause (will be implemented in M3)
             break
-        case .custom(let action):
-            action()
         }
     }
 
@@ -128,17 +161,17 @@ class iPodViewModel: ObservableObject {
 
     func playPauseButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel
+        // Will be implemented with PlayerViewModel in M3
     }
 
     func nextButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel
+        // Will be implemented with PlayerViewModel in M3
     }
 
     func previousButtonPressed() {
         playFeedback()
-        // Will be implemented with PlayerViewModel
+        // Will be implemented with PlayerViewModel in M3
     }
 
     // MARK: - Navigation
@@ -146,7 +179,17 @@ class iPodViewModel: ObservableObject {
     private func navigateTo(_ screen: MenuScreen) {
         navigationStack.append(currentScreen)
         currentScreen = screen
-        selectedIndex = 0
+
+        // Set initial selection for color screen
+        if screen == .colorSelection {
+            if let currentColorIndex = iPodColor.allCases.firstIndex(of: selectedColor) {
+                selectedIndex = currentColorIndex
+            } else {
+                selectedIndex = 0
+            }
+        } else {
+            selectedIndex = 0
+        }
     }
 
     func goBack() {
