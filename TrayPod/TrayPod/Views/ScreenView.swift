@@ -155,16 +155,102 @@ struct ScreenView: View {
 
     // Battery with subtle inner shadow and gray outline
     private var batteryIndicator: some View {
-        HStack(spacing: 0) {
-            // Battery body
-            RoundedRectangle(cornerRadius: 1.5)
-                .fill(Color(red: 0.25, green: 0.68, blue: 0.25))  // Bright green
-                .frame(width: 16, height: 7)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .stroke(Color(red: 0.45, green: 0.47, blue: 0.52), lineWidth: 0.5)
-                )
-                .shadow(color: coolBlack.opacity(0.1), radius: 0.2, x: 0.2, y: 0.2)
+        let batteryWidth: CGFloat = 16
+        let batteryHeight: CGFloat = 7
+
+        return HStack(spacing: 0) {
+            // Battery body — glass tube with green fill
+            ZStack {
+                // Layer 1: Green fill
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(
+                        LinearGradient(
+                            stops: [
+                                .init(color: Color(red: 0.18, green: 0.62, blue: 0.18), location: 0.0),
+                                .init(color: Color(red: 0.28, green: 0.74, blue: 0.28), location: 0.52),
+                                .init(color: Color(red: 0.42, green: 0.82, blue: 0.42), location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+
+                // Layer 2: Glass tube overlay
+                ZStack {
+                    // Top gloss
+                    VStack(spacing: 0) {
+                        LinearGradient(
+                            stops: [
+                                .init(color: .white.opacity(0.55), location: 0.0),
+                                .init(color: .white.opacity(0.18), location: 0.6),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: batteryHeight * 0.45)
+                        Spacer(minLength: 0)
+                    }
+
+                    // Top rim shadow (over gloss)
+                    VStack(spacing: 0) {
+                        LinearGradient(
+                            stops: [
+                                .init(color: .black.opacity(0.30), location: 0.0),
+                                .init(color: .black.opacity(0.10), location: 0.4),
+                                .init(color: .clear, location: 1.0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: batteryHeight * 0.28)
+                        .blur(radius: 0.3)
+                        Spacer(minLength: 0)
+                    }
+
+                    // Equator shadow
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .clear, location: 0.36),
+                            .init(color: .black.opacity(0.16), location: 0.54),
+                            .init(color: .clear, location: 0.72),
+                            .init(color: .clear, location: 1.0)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .blur(radius: 0.3)
+
+                    // Top bright edge
+                    VStack(spacing: 0) {
+                        Color.white.opacity(0.35)
+                            .frame(height: 0.5)
+                        Spacer(minLength: 0)
+                    }
+
+                    // Bottom dark edge
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        Color.black.opacity(0.08)
+                            .frame(height: 0.5)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 1.5))
+            }
+            .frame(width: batteryWidth, height: batteryHeight)
+            .overlay(
+                RoundedRectangle(cornerRadius: 1.5)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.7), Color.black.opacity(0.18)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
