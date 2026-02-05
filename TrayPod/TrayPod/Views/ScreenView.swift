@@ -59,22 +59,29 @@ struct ScreenView: View {
                     .frame(height: titleBarHeight)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 6)
-                    .background(titleBarGradient)
-                    .overlay(alignment: .top) {
-                        // Cool white highlight at top (Aqua style shine)
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.85),
-                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.4),
-                                        Color.clear
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .frame(height: 10)
+                    .background {
+                        // All decorative layers BEHIND the content
+                        ZStack {
+                            titleBarGradient
+
+                            // Cool white highlight at top (Aqua style shine)
+                            VStack(spacing: 0) {
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.85),
+                                                Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.4),
+                                                Color.clear
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(height: 10)
+                                Spacer(minLength: 0)
+                            }
+                        }
                     }
                     .overlay(alignment: .bottom) {
                         // Subtle cool shadow at bottom
@@ -155,16 +162,28 @@ struct ScreenView: View {
 
     // Battery with subtle inner shadow and gray outline
     private var batteryIndicator: some View {
-        HStack(spacing: 0) {
-            // Battery body
+        let batteryWidth: CGFloat = 16
+        let batteryHeight: CGFloat = 7
+
+        return HStack(spacing: 0) {
+            // Battery body — simple dark-to-light gradient
             RoundedRectangle(cornerRadius: 1.5)
-                .fill(Color(red: 0.25, green: 0.68, blue: 0.25))  // Bright green
-                .frame(width: 16, height: 7)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.04, green: 0.18, blue: 0.04),  // Very dark green
+                            Color(red: 0.55, green: 0.92, blue: 0.50)   // Bright light green
+                        ],
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                )
+                .frame(width: batteryWidth, height: batteryHeight)
                 .overlay(
                     RoundedRectangle(cornerRadius: 1.5)
-                        .stroke(Color(red: 0.45, green: 0.47, blue: 0.52), lineWidth: 0.5)
+                        .stroke(Color(red: 0.30, green: 0.32, blue: 0.36), lineWidth: 0.75)
                 )
-                .shadow(color: coolBlack.opacity(0.1), radius: 0.2, x: 0.2, y: 0.2)
+                .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
