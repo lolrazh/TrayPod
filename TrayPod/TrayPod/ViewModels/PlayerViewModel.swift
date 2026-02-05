@@ -5,12 +5,17 @@ import Combine
 class PlayerViewModel: ObservableObject {
     @Published var state: PlayerState = PlayerState()
     @Published var activeServiceName: String = "No Music App"
+    @Published var isAdjustingVolume: Bool = false
 
     private var musicService: MusicServiceProtocol?
     private let spotifyService = SpotifyService()
 
     private var cancellables = Set<AnyCancellable>()
     private var progressTimer: Timer?
+    private var volumeIdleTimer: Timer?
+
+    /// How long to show volume bar after last adjustment
+    private let volumeIdleTimeout: TimeInterval = 1.5
 
     init() {
         setupNotificationListener()
@@ -20,6 +25,7 @@ class PlayerViewModel: ObservableObject {
 
     deinit {
         progressTimer?.invalidate()
+        volumeIdleTimer?.invalidate()
     }
 
     // MARK: - Real-time Notification Listener
@@ -115,6 +121,25 @@ class PlayerViewModel: ObservableObject {
         let newVolume = max(0, min(1, state.volume + delta))
         service.volume = newVolume
         state.volume = newVolume
+
+        // Show volume bar and reset idle timer
+        showVolumeOverlay()
+    }
+
+    /// Show the volume bar overlay and schedule auto-hide
+    private func showVolumeOverlay() {
+        isAdjustingVolume = true
+        resetVolumeIdleTimer()
+    }
+
+    /// Reset the timer that hides the volume bar after idle
+    private func resetVolumeIdleTimer() {
+        volumeIdleTimer?.invalidate()
+        volumeIdleTimer = Timer.scheduledTimer(withTimeInterval: volumeIdleTimeout, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.isAdjustingVolume = false
+            }
+        }
     }
 
     func setVolume(_ volume: Float) {

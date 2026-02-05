@@ -318,8 +318,8 @@ struct NowPlayingView: View {
 
                 Spacer(minLength: 2)
 
-                // Progress bar at bottom - pushed up closer to content
-                progressBar
+                // Status bar at bottom - swaps between progress and volume
+                statusBarArea
                     .padding(.horizontal, horizontalPadding)
                     .padding(.bottom, 6)
             } else {
@@ -394,45 +394,47 @@ struct NowPlayingView: View {
             )
     }
 
-    // iPod 5G progress bar gradient (matches highlight)
-    private let progressGradient = LinearGradient(
-        colors: [
-            Color(red: 0.30, green: 0.67, blue: 0.95),  // Lighter blue top
-            Color(red: 0.0, green: 0.50, blue: 0.85)    // Darker blue bottom
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
+    // MARK: - Status Bar (Progress / Volume swap)
 
-    private var progressBar: some View {
-        GeometryReader { geo in
-            VStack(spacing: 3) {
-                // iPod 5G progress bar - sharp edges with downward shadow
-                ZStack(alignment: .leading) {
-                    // Background track - gray unfilled portion with downward shadow
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.35))
-                        .frame(height: 14)
-                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 2)
-
-                    // Filled progress with blue gradient
-                    Rectangle()
-                        .fill(progressGradient)
-                        .frame(width: max(0, geo.size.width * playerState.progress), height: 14)
-                }
-
-                // Time labels - unified 11pt bold font
-                HStack {
-                    Text(Track.formatTime(playerState.playbackPosition))
-                        .font(bodyFont)
-                    Spacer()
-                    Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(bodyFont)
-                }
-                .foregroundColor(screenTextColor)
+    /// Container that swaps between progress bar and volume bar with slide animation
+    private var statusBarArea: some View {
+        ZStack {
+            if playerViewModel.isAdjustingVolume {
+                // Volume bar slides in from right
+                volumeBar
+                    .transition(iPodTransition.barSwap(showingVolume: true))
+            } else {
+                // Progress bar slides in from left
+                progressBar
+                    .transition(iPodTransition.barSwap(showingVolume: false))
             }
         }
-        .frame(height: 28)
+        .animation(iPodAnimation.standard, value: playerViewModel.isAdjustingVolume)
+        .clipped()  // Clip sliding content
+    }
+
+    private var progressBar: some View {
+        StatusBarView(
+            progress: playerState.progress,
+            leftContent: {
+                Text(Track.formatTime(playerState.playbackPosition))
+            },
+            rightContent: {
+                Text("-" + Track.formatTime(playerState.remainingTime))
+            }
+        )
+    }
+
+    private var volumeBar: some View {
+        StatusBarView(
+            progress: CGFloat(playerState.volume),
+            leftContent: {
+                Image(systemName: "speaker.fill")
+            },
+            rightContent: {
+                Image(systemName: "speaker.wave.3.fill")
+            }
+        )
     }
 }
 
