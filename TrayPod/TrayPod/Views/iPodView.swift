@@ -13,22 +13,9 @@ struct iPodView: View {
                 .fill(viewModel.selectedColor.bodyColor)
                 .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 6)
 
-            // Edge highlight - subtle plastic edge reflection
+            // Edge outline - cool grey, slightly thicker
             RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.4),
-                            Color.white.opacity(0.15),
-                            Color.clear,
-                            Color.black.opacity(0.05),
-                            Color.black.opacity(0.1)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+                .stroke(Color(red: 0.65, green: 0.67, blue: 0.70), lineWidth: 1.5)
 
             VStack(spacing: 16) {
                 // Screen area - pushed slightly lower

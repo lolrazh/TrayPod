@@ -40,13 +40,12 @@ struct ScreenView: View {
     var body: some View {
         // Outer container - FIXED size, content doesn't affect this
         ZStack {
-            // Screen bezel - BLACK with rounded outer corners
-            // cornerRadius = bezelPadding ensures inner edge is sharp
-            RoundedRectangle(cornerRadius: bezelPadding)
-                .fill(Color.black)
+            // Screen bezel - dark grey with more rounded corners
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(red: 0.15, green: 0.16, blue: 0.18))
 
-            // LCD screen area - sharp corners, black bezel wraps around
-            Rectangle()
+            // LCD screen area - nested rounding inside bezel
+            RoundedRectangle(cornerRadius: 4)
                 .fill(screenBackgroundColor)
                 .padding(bezelPadding)
 
@@ -85,6 +84,7 @@ struct ScreenView: View {
                                 .frame(height: 1)
                         }
                     }
+                    .clipShape(TopRoundedRectangle(radius: 4))
 
                 // Content area - fixed size box that clips content
                 Color.clear
@@ -95,7 +95,7 @@ struct ScreenView: View {
                     .clipped()
             }
             .padding(bezelPadding)
-            .clipShape(Rectangle())
+            .clipShape(RoundedRectangle(cornerRadius: 4))
         }
         .frame(width: screenWidth, height: screenHeight)
         .fixedSize()  // Prevent parent from affecting size
@@ -439,6 +439,32 @@ struct BottomRoundedRectangle: Shape {
         path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
         path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.maxY - radius),
                     radius: radius, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// Shape with only top corners rounded (for title bar)
+struct TopRoundedRectangle: Shape {
+    var radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        // Start at bottom-left
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        // Line up to top-left corner curve
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+        // Top-left corner
+        path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
+                    radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false)
+        // Line to top-right corner curve
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        // Top-right corner
+        path.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
+                    radius: radius, startAngle: .degrees(270), endAngle: .degrees(0), clockwise: false)
+        // Line down to bottom-right
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        // Close path
         path.closeSubpath()
         return path
     }
