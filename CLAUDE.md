@@ -148,6 +148,31 @@ DistributedNotificationCenter.default().addObserver(
 - Local timer for position interpolation (no AppleScript)
 - AppleScript only for commands (play, pause, next, volume)
 
+### Aqua "Glass Tube" Design (iPod 5G Progress/Volume Bar)
+
+**Mental model:** A transparent glass cylinder with colored liquid inside. The 3D belongs to the container, not the fill.
+
+**3-layer hierarchy (bottom to top):**
+1. **Track background** — recessed cool gray gradient (the empty tube)
+2. **Fill** — flat aqua gradient + soft banding (the liquid — NO 3D on the fill itself)
+3. **Glass tube overlay** — full-width transparent white/black overlays (the cylinder illusion)
+
+**Key principles:**
+- Highlights/shadows span the **entire bar** (filled + unfilled) — they belong to the glass, not the liquid
+- The right edge of the fill has **no shadow/darkening** — it's just where the liquid level ends
+- Use only `.opacity()` on white/black — **never** an opaque base `Rectangle()`
+- Banding uses high blur (1.2+) for smooth interpolation — sharp bands look wrong
+
+**Glass tube lighting stack (top to bottom of cylinder):**
+1. Top edge bright pixel line (`.white.opacity(0.40)`, 0.5px)
+2. Top gloss highlight (`.white.opacity(0.60)` → clear, top 45%)
+3. Top rim shadow OVER the gloss (`.black.opacity(0.36)` → clear, top 30%, blurred)
+4. Equator shadow (`.black.opacity(0.20)`, centered at 54%, blurred)
+5. Bottom edge dark pixel line (`.black.opacity(0.10)`, 0.5px)
+6. Drop shadow below bar (`.shadow(opacity: 0.24, radius: 4, y: 2)`)
+
+**The rim shadow must render ABOVE the gloss** in the ZStack — otherwise the white gloss drowns it out.
+
 ### NSView Coordinate System
 - Y increases **upward** (opposite of iOS)
 - `location.y > center.y` means **above** center
