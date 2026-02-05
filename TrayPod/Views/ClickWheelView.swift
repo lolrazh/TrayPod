@@ -203,9 +203,6 @@ class WheelNSView: NSView {
         // Use scrollingDeltaY for smooth trackpad scrolling
         let delta = event.scrollingDeltaY
         if abs(delta) > 0.1 {
-            // Trigger haptic directly on scroll (like freewrite)
-            // This gives immediate feedback regardless of selection state
-            NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
             onScroll?(delta)
         }
     }
