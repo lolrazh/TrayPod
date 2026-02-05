@@ -8,7 +8,7 @@ struct ClickWheelView: View {
     @State private var centerPressed: Bool = false
 
     private let wheelSize: CGFloat = 180  // 52% of body width (real iPod proportion)
-    private let centerButtonSize: CGFloat = 78   // 43% of wheel (real iPod proportion)
+    private let centerButtonSize: CGFloat = 65   // Smaller center button
 
     enum WheelZone: Equatable {
         case menu, forward, back, playPause
@@ -198,7 +198,7 @@ struct WheelGestureView: NSViewRepresentable {
 
 class WheelNSView: NSView {
     var wheelSize: CGFloat = 180
-    var centerButtonSize: CGFloat = 78
+    var centerButtonSize: CGFloat = 65
 
     var onZonePress: ((ClickWheelView.WheelZone?) -> Void)?
     var onCenterPress: ((Bool) -> Void)?
