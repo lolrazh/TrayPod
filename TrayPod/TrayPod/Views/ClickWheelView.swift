@@ -21,20 +21,9 @@ struct ClickWheelView: View {
                 .fill(viewModel.selectedColor.wheelColor)
                 .frame(width: wheelSize, height: wheelSize)
 
-            // Subtle inward shadow on wheel from left and right sides
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.black.opacity(0.06),
-                            Color.clear,
-                            Color.clear,
-                            Color.black.opacity(0.06)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+            // Concave donut shadow - darker at both outer AND inner edges
+            // Creates a recessed/bowl effect in the ring area
+            donutShadow
                 .frame(width: wheelSize, height: wheelSize)
 
             // Click zone labels with press states
@@ -64,6 +53,60 @@ struct ClickWheelView: View {
             .frame(width: wheelSize, height: wheelSize)
         }
         .frame(width: wheelSize, height: wheelSize)
+    }
+
+    // MARK: - Concave Donut Shadow
+
+    // Creates a recessed/concave shadow effect on the wheel ring
+    // Dark at outer perimeter + dark at inner perimeter (around center button)
+    // Lighter in the middle of the ring = "bowl" or "valley" effect
+    private var donutShadow: some View {
+        let outerRadius = wheelSize / 2        // 130
+        let innerRadius = centerButtonSize / 2 // 50
+        let ringMidRadius = (outerRadius + innerRadius) / 2  // 90
+
+        return ZStack {
+            // Shadow from outer edge going inward
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.clear,                    // Center (won't be visible anyway)
+                            Color.clear,                    // Inner region
+                            Color.black.opacity(0.06)       // Outer edge shadow
+                        ],
+                        center: .center,
+                        startRadius: ringMidRadius,
+                        endRadius: outerRadius
+                    )
+                )
+
+            // Shadow from inner edge (around center button) going outward
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color.black.opacity(0.05),      // Inner edge shadow
+                            Color.clear,                    // Fades to transparent
+                            Color.clear                     // Outer region
+                        ],
+                        center: .center,
+                        startRadius: innerRadius,
+                        endRadius: ringMidRadius
+                    )
+                )
+        }
+        // Mask to only show in the ring area (donut shape)
+        .mask(
+            ZStack {
+                Circle()
+                    .frame(width: wheelSize, height: wheelSize)
+                Circle()
+                    .frame(width: centerButtonSize, height: centerButtonSize)
+                    .blendMode(.destinationOut)
+            }
+            .compositingGroup()
+        )
     }
 
     // MARK: - Click Zone Labels

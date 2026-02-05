@@ -107,12 +107,77 @@ struct ScreenView: View {
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(screenTextColor)
 
-            // Battery on the right
             HStack {
+                // Play button on left (only on Now Playing)
+                if viewModel.currentScreen == .nowPlaying {
+                    playPauseButton
+                }
+
                 Spacer()
+
+                // Battery on the right
                 batteryIndicator
             }
         }
+    }
+
+    // Aqua-style play/pause button for title bar
+    private var playPauseButton: some View {
+        Button(action: { viewModel.playerViewModel.togglePlayPause() }) {
+            ZStack {
+                // Button background with gradient
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.45, green: 0.75, blue: 1.0),
+                                Color(red: 0.25, green: 0.55, blue: 0.95),
+                                Color(red: 0.15, green: 0.45, blue: 0.85)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 20, height: 16)
+
+                // Inner shadow effect
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.black.opacity(0.3),
+                                Color.clear,
+                                Color.white.opacity(0.3)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+                    .frame(width: 20, height: 16)
+
+                // Glossy highlight at top
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.5),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+                    .frame(width: 16, height: 7)
+                    .offset(y: -2)
+
+                // Play/Pause icon
+                Image(systemName: viewModel.playerViewModel.state.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(.white)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private var screenTitle: String {
@@ -271,17 +336,6 @@ struct NowPlayingView: View {
     private let screenTextColor = Color.black
     private let artworkSize: CGFloat = 70 // Album art size
 
-    // Aqua-style blue gradient for play button
-    private let playButtonGradient = LinearGradient(
-        colors: [
-            Color(red: 0.45, green: 0.75, blue: 1.0),   // Bright top
-            Color(red: 0.25, green: 0.55, blue: 0.95),  // Mid
-            Color(red: 0.15, green: 0.45, blue: 0.85)   // Darker bottom
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-
     private var playerState: PlayerState {
         playerViewModel.state
     }
@@ -293,64 +347,12 @@ struct NowPlayingView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let track = track {
-                // Top row: Play button (left) and track position (right)
-                HStack {
-                    // Aqua-style play/pause button with inner shadow
-                    Button(action: { playerViewModel.togglePlayPause() }) {
-                        ZStack {
-                            // Button background with gradient
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(playButtonGradient)
-                                .frame(width: 18, height: 14)
-
-                            // Inner shadow effect (top darker, bottom lighter)
-                            RoundedRectangle(cornerRadius: 3)
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.black.opacity(0.3),
-                                            Color.clear,
-                                            Color.white.opacity(0.3)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ),
-                                    lineWidth: 1
-                                )
-                                .frame(width: 18, height: 14)
-
-                            // Glossy highlight at top
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.5),
-                                            Color.clear
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .center
-                                    )
-                                )
-                                .frame(width: 14, height: 6)
-                                .offset(y: -2)
-
-                            // Play/Pause icon
-                            Image(systemName: playerState.isPlaying ? "pause.fill" : "play.fill")
-                                .font(.system(size: 7, weight: .bold))
-                                .foregroundColor(.white)
-                        }
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer()
-
-                    // Track position "1 of 14"
-                    Text("1 of 1")
-                        .font(.system(size: 10))
-                        .foregroundColor(screenTextColor.opacity(0.6))
-                }
-                .padding(.horizontal, 6)
-                .padding(.top, 4)
+                // Track position "1 of 1" centered at top
+                Text("1 of 1")
+                    .font(.system(size: 10))
+                    .foregroundColor(screenTextColor.opacity(0.6))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
 
                 // Main content: Album art LEFT, details RIGHT
                 HStack(alignment: .top, spacing: 10) {
