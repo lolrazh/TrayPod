@@ -301,7 +301,7 @@ struct NowPlayingView: View {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
                     .font(.custom("Helvetica Neue", size: 10))
-                    .foregroundColor(screenTextColor.opacity(0.6))
+                    .foregroundColor(screenTextColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 6)
                     .padding(.top, 4)
@@ -312,10 +312,10 @@ struct NowPlayingView: View {
                     albumArtwork(for: track)
                         .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                    // Track info on right - Helvetica Neue
+                    // Track info on right - all same size, all black like reference
                     VStack(alignment: .leading, spacing: 2) {
                         Text(track.title)
-                            .font(.custom("Helvetica Neue", size: 12).weight(.bold))
+                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(2)
 
@@ -325,8 +325,8 @@ struct NowPlayingView: View {
                             .lineLimit(1)
 
                         Text(track.album)
-                            .font(.custom("Helvetica Neue", size: 10))
-                            .foregroundColor(screenTextColor.opacity(0.7))
+                            .font(.custom("Helvetica Neue", size: 11))
+                            .foregroundColor(screenTextColor)
                             .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -438,15 +438,15 @@ struct NowPlayingView: View {
                         .frame(width: max(0, geo.size.width * playerState.progress), height: 7)
                 }
 
-                // Time labels
+                // Time labels - black like reference
                 HStack {
                     Text(Track.formatTime(playerState.playbackPosition))
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.custom("Helvetica Neue", size: 10))
                     Spacer()
                     Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(.system(size: 9, design: .monospaced))
+                        .font(.custom("Helvetica Neue", size: 10))
                 }
-                .foregroundColor(screenTextColor.opacity(0.6))
+                .foregroundColor(screenTextColor)
             }
         }
         .frame(height: 22)
