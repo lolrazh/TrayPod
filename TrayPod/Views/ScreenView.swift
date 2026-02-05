@@ -247,16 +247,12 @@ struct NowPlayingView: View {
     private var progressBar: some View {
         GeometryReader { geo in
             VStack(spacing: 2) {
-                // Progress track
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(screenTextColor.opacity(0.2))
-                        .frame(height: 4)
-
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(screenTextColor)
-                        .frame(width: geo.size.width * playerState.progress, height: 4)
-                }
+                // Classic iPod segmented progress bar
+                iPodProgressBar(
+                    progress: playerState.progress,
+                    width: geo.size.width,
+                    height: 8
+                )
 
                 // Time labels
                 HStack {
@@ -269,7 +265,42 @@ struct NowPlayingView: View {
                 .foregroundColor(screenTextColor.opacity(0.6))
             }
         }
-        .frame(height: 20)
+        .frame(height: 24)
+    }
+
+    /// Classic iPod-style segmented progress bar with blue gradient and notches
+    private func iPodProgressBar(progress: Double, width: CGFloat, height: CGFloat) -> some View {
+        let segmentWidth: CGFloat = 4
+        let segmentSpacing: CGFloat = 1
+        let totalSegmentWidth = segmentWidth + segmentSpacing
+        let segmentCount = Int(width / totalSegmentWidth)
+        let filledSegments = Int(Double(segmentCount) * progress)
+
+        // iPod classic blue gradient colors
+        let blueStart = Color(red: 0.2, green: 0.5, blue: 0.9)
+        let blueEnd = Color(red: 0.5, green: 0.75, blue: 1.0)
+        let emptyColor = Color(red: 0.75, green: 0.78, blue: 0.72)
+
+        return HStack(spacing: segmentSpacing) {
+            ForEach(0..<segmentCount, id: \.self) { index in
+                let isFilled = index < filledSegments
+                let gradientPosition = Double(index) / Double(max(segmentCount - 1, 1))
+
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(
+                        isFilled
+                            ? blueStart.interpolate(to: blueEnd, amount: gradientPosition)
+                            : emptyColor
+                    )
+                    .frame(width: segmentWidth, height: height)
+            }
+        }
+        .frame(height: height)
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .stroke(screenTextColor.opacity(0.15), lineWidth: 0.5)
+        )
     }
 }
 
@@ -329,6 +360,32 @@ struct ColorSelectionView: View {
         .background(isHighlighted ? highlightColor : Color.clear)
         .foregroundColor(isHighlighted ? .white : screenTextColor)
         .cornerRadius(4)
+    }
+}
+
+// MARK: - Color Interpolation Extension
+
+extension Color {
+    /// Interpolates between two colors
+    func interpolate(to color: Color, amount: Double) -> Color {
+        let amount = max(0, min(1, amount))
+
+        // Convert to NSColor for component extraction
+        let fromNS = NSColor(self)
+        let toNS = NSColor(color)
+
+        var fromR: CGFloat = 0, fromG: CGFloat = 0, fromB: CGFloat = 0, fromA: CGFloat = 0
+        var toR: CGFloat = 0, toG: CGFloat = 0, toB: CGFloat = 0, toA: CGFloat = 0
+
+        fromNS.getRed(&fromR, green: &fromG, blue: &fromB, alpha: &fromA)
+        toNS.getRed(&toR, green: &toG, blue: &toB, alpha: &toA)
+
+        let r = fromR + (toR - fromR) * amount
+        let g = fromG + (toG - fromG) * amount
+        let b = fromB + (toB - fromB) * amount
+        let a = fromA + (toA - fromA) * amount
+
+        return Color(red: r, green: g, blue: b, opacity: a)
     }
 }
 
