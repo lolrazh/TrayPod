@@ -90,7 +90,7 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
                     RoundedRectangle(cornerRadius: barCornerRadius, style: .continuous)
                         .stroke(borderGradient, lineWidth: 0.8)
                 }
-                .shadow(color: Color.black.opacity(0.08), radius: 0.5, y: 1)
+                .shadow(color: Color.black.opacity(0.12), radius: 2.5, y: 1.5)
 
                 // Labels below the bar
                 HStack {
@@ -123,6 +123,22 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
                     endPoint: .bottom
                 )
                 .frame(height: barHeight * 0.45)
+
+                Spacer(minLength: 0)
+            }
+
+            // Top rim shadow: painted OVER the gloss so it's visible
+            VStack(spacing: 0) {
+                LinearGradient(
+                    stops: [
+                        .init(color: .black.opacity(0.10), location: 0.0),
+                        .init(color: .black.opacity(0.04), location: 0.4),
+                        .init(color: .clear, location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: barHeight * 0.25)
 
                 Spacer(minLength: 0)
             }
