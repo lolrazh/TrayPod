@@ -17,44 +17,51 @@ struct ScreenView: View {
         endPoint: .bottom
     )
 
+    // Fixed screen dimensions - NEVER changes
+    private let screenWidth: CGFloat = 310
+    private let screenHeight: CGFloat = 180
+    private let bezelPadding: CGFloat = 5
+    private let titleBarHeight: CGFloat = 26
+
     var body: some View {
+        // Outer container - FIXED size, content doesn't affect this
         ZStack {
             // Screen bezel - BLACK like reference image
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.black)
 
-            // LCD screen area
-            ZStack {
-                // Base LCD color - pure white
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(screenBackgroundColor)
-            }
-            .padding(5)
+            // LCD screen area - white background
+            RoundedRectangle(cornerRadius: 4)
+                .fill(screenBackgroundColor)
+                .padding(bezelPadding)
 
-            // Screen content with title bar
+            // Content container with fixed layout
             VStack(spacing: 0) {
-                // Aqua-style title bar with gradient and bottom shadow
+                // Title bar - fixed height
                 titleBar
+                    .frame(height: titleBarHeight)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
                     .background(titleBarGradient)
-                    .overlay(
-                        // Bottom shadow line (Aqua style)
-                        VStack {
-                            Spacer()
-                            Rectangle()
-                                .fill(Color.black.opacity(0.2))
-                                .frame(height: 1)
-                        }
-                    )
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.black.opacity(0.2))
+                            .frame(height: 1)
+                    }
 
-                // Content area - no horizontal padding for full-width selection
-                screenContent
+                // Content area - fixed size box that clips content
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay {
+                        screenContent
+                    }
+                    .clipped()
             }
-            .padding(5)
+            .padding(bezelPadding)
             .clipShape(RoundedRectangle(cornerRadius: 4))
         }
-        .frame(height: 180)
+        .frame(width: screenWidth, height: screenHeight)
+        .fixedSize()  // Prevent parent from affecting size
     }
 
     private var titleBar: some View {
@@ -68,7 +75,6 @@ struct ScreenView: View {
             // Battery indicator
             batteryIndicator
         }
-        .frame(height: 20)
     }
 
     private var screenTitle: String {
