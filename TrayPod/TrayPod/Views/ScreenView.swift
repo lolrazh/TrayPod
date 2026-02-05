@@ -7,15 +7,19 @@ struct ScreenView: View {
     private let screenBackgroundColor = Color.white
     private let screenTextColor = Color.black
 
-    // Aqua-style title bar gradient (lighter top, darker bottom)
+    // iPod 5G title bar - gray with 3D depth effect
     private let titleBarGradient = LinearGradient(
         colors: [
-            Color(red: 0.92, green: 0.92, blue: 0.92),  // Light gray top
-            Color(red: 0.78, green: 0.78, blue: 0.78)   // Darker gray bottom
+            Color(red: 0.88, green: 0.88, blue: 0.88),  // Lighter at very top
+            Color(red: 0.82, green: 0.82, blue: 0.82),  // Mid gray
+            Color(red: 0.75, green: 0.75, blue: 0.75)   // Darker toward bottom
         ],
         startPoint: .top,
         endPoint: .bottom
     )
+
+    // iPod 5G battery green
+    private let batteryGreen = Color(red: 0.30, green: 0.75, blue: 0.30)
 
     // Fixed screen dimensions - NEVER changes
     private let screenWidth: CGFloat = 310
@@ -37,16 +41,34 @@ struct ScreenView: View {
 
             // Content container with fixed layout
             VStack(spacing: 0) {
-                // Title bar - fixed height
+                // Title bar - iPod 5G style with 3D shadow effect
                 titleBar
                     .frame(height: titleBarHeight)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 6)
                     .background(titleBarGradient)
-                    .overlay(alignment: .bottom) {
+                    .overlay(alignment: .top) {
+                        // Lighter shadow at top (more spread)
                         Rectangle()
-                            .fill(Color.black.opacity(0.2))
-                            .frame(height: 1)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.5), Color.clear],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(height: 8)
+                    }
+                    .overlay(alignment: .bottom) {
+                        // Intense shadow at bottom (low spread)
+                        VStack(spacing: 0) {
+                            Rectangle()
+                                .fill(Color.black.opacity(0.25))
+                                .frame(height: 1)
+                            Rectangle()
+                                .fill(Color.black.opacity(0.08))
+                                .frame(height: 2)
+                        }
                     }
 
                 // Content area - fixed size box that clips content
@@ -65,15 +87,17 @@ struct ScreenView: View {
     }
 
     private var titleBar: some View {
-        HStack {
+        ZStack {
+            // Centered title
             Text(screenTitle)
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(screenTextColor)
 
-            Spacer()
-
-            // Battery indicator
-            batteryIndicator
+            // Battery on the right
+            HStack {
+                Spacer()
+                batteryIndicator
+            }
         }
     }
 
@@ -92,22 +116,25 @@ struct ScreenView: View {
 
     private var batteryIndicator: some View {
         HStack(spacing: 1) {
-            RoundedRectangle(cornerRadius: 1)
-                .fill(screenTextColor)
-                .frame(width: 20, height: 10)
+            // Battery body
+            RoundedRectangle(cornerRadius: 2)
+                .stroke(screenTextColor, lineWidth: 1)
+                .frame(width: 22, height: 10)
                 .overlay(
+                    // Green fill bars
                     HStack(spacing: 1) {
-                        ForEach(0..<4) { i in
-                            Rectangle()
-                                .fill(screenBackgroundColor)
-                                .frame(width: 3, height: 6)
+                        ForEach(0..<4, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(batteryGreen)
+                                .frame(width: 4, height: 6)
                         }
                     }
-                    .padding(.leading, 2)
+                    .padding(.horizontal, 2)
                     , alignment: .leading
                 )
 
-            Rectangle()
+            // Battery tip
+            RoundedRectangle(cornerRadius: 1)
                 .fill(screenTextColor)
                 .frame(width: 2, height: 5)
         }
@@ -215,47 +242,50 @@ struct NowPlayingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             if let track = track {
-                // Track position (like "6 of 15") - matches reference
+                // Track position "1 of 14" - top left
                 Text("1 of 1")
-                    .font(.system(size: 9))
-                    .foregroundColor(screenTextColor.opacity(0.6))
+                    .font(.system(size: 10))
+                    .foregroundColor(screenTextColor.opacity(0.7))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 6)
+                    .padding(.top, 4)
 
-                Spacer(minLength: 2)
+                // Main content: Album art LEFT, details RIGHT
+                HStack(alignment: .top, spacing: 10) {
+                    // Album artwork on left
+                    albumArtwork(for: track)
+                        .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                // Centered album artwork with Aqua-style shadow
-                albumArtwork(for: track)
-                    .shadow(color: Color.black.opacity(0.3), radius: 3, x: 1, y: 2)
+                    // Track info on right
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(track.title)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(screenTextColor)
+                            .lineLimit(2)
 
-                Spacer(minLength: 4)
+                        Text(track.artist)
+                            .font(.system(size: 11))
+                            .foregroundColor(screenTextColor)
+                            .lineLimit(1)
 
-                // Centered track info
-                VStack(spacing: 1) {
-                    Text(track.title)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(screenTextColor)
-                        .lineLimit(1)
-
-                    Text(track.artist)
-                        .font(.system(size: 10))
-                        .foregroundColor(screenTextColor)
-                        .lineLimit(1)
-
-                    Text(track.album)
-                        .font(.system(size: 9))
-                        .foregroundColor(screenTextColor.opacity(0.7))
-                        .lineLimit(1)
+                        Text(track.album)
+                            .font(.system(size: 10))
+                            .foregroundColor(screenTextColor.opacity(0.7))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 6)
+                .padding(.top, 4)
 
-                Spacer(minLength: 2)
+                Spacer()
 
-                // Progress bar with diamond scrubber
+                // Progress bar at bottom
                 progressBar
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 6)
+                    .padding(.bottom, 4)
             } else {
                 // No track playing
                 Spacer()
