@@ -31,9 +31,9 @@ struct iPodView: View {
                 )
 
             VStack(spacing: 16) {
-                // Screen area - thinner margins for larger screen appearance
+                // Screen area - pushed slightly lower
                 ScreenView(viewModel: viewModel)
-                    .padding(.top, 14)
+                    .padding(.top, 18)
 
                 Spacer()
 
