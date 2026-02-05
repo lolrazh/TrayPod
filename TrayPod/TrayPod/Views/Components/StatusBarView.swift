@@ -90,6 +90,7 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
                     RoundedRectangle(cornerRadius: barCornerRadius, style: .continuous)
                         .stroke(borderGradient, lineWidth: 0.8)
                 }
+                .compositingGroup()
                 .shadow(color: Color.black.opacity(0.24), radius: 4, y: 2)
 
                 // Labels below the bar
