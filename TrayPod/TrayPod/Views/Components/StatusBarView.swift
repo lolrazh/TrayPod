@@ -1,7 +1,12 @@
 import SwiftUI
 
 /// Shared horizontal status bar component for both progress and volume display
-/// iPod 5G style: sharp edges, subtle bottom shadow, layered aqua fill
+/// iPod 5G style: glass tube with aqua liquid fill
+///
+/// Layer hierarchy (bottom to top):
+///   1. Track background — recessed cool gray
+///   2. Blue fill — flat aqua gradient with soft vertical banding
+///   3. Glass tube — transparent highlights/shadows spanning FULL width
 struct StatusBarView<LeftContent: View, RightContent: View>: View {
     let progress: CGFloat  // 0.0 - 1.0
     let leftContent: LeftContent
@@ -11,7 +16,9 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
     private let barCornerRadius: CGFloat = 1.5
     private let bodyFont = Font.custom("Helvetica Neue", size: 11).weight(.bold)
 
-    // iPod 5G neutral track (cool gray, slight bevel)
+    // MARK: - Gradients
+
+    // Layer 1: Recessed track (cool gray, slight top-to-bottom bevel)
     private let trackGradient = LinearGradient(
         stops: [
             .init(color: Color(red: 0.98, green: 0.99, blue: 1.00), location: 0.0),
@@ -22,21 +29,22 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
         endPoint: .bottom
     )
 
-    private let trackBorderGradient = LinearGradient(
-        colors: [
-            Color.white.opacity(0.88),
-            Color.black.opacity(0.22)
+    // Layer 2: Aqua fill base (flat blue, no 3D — the tube overlay handles that)
+    private let fillGradient = LinearGradient(
+        stops: [
+            .init(color: Color(red: 0.16, green: 0.62, blue: 0.93), location: 0.0),
+            .init(color: Color(red: 0.24, green: 0.72, blue: 0.97), location: 0.52),
+            .init(color: Color(red: 0.43, green: 0.82, blue: 0.99), location: 1.0)
         ],
         startPoint: .top,
         endPoint: .bottom
     )
 
-    // Aqua fill base (subtle dark -> light), bar-level 3D comes from shared overlay
-    private let fillBaseGradient = LinearGradient(
-        stops: [
-            .init(color: Color(red: 0.16, green: 0.62, blue: 0.93), location: 0.0),
-            .init(color: Color(red: 0.24, green: 0.72, blue: 0.97), location: 0.52),
-            .init(color: Color(red: 0.43, green: 0.82, blue: 0.99), location: 1.0)
+    // Border: light top, dark bottom for inset look
+    private let borderGradient = LinearGradient(
+        colors: [
+            Color.white.opacity(0.88),
+            Color.black.opacity(0.22)
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -55,36 +63,34 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
     var body: some View {
         GeometryReader { geo in
             let clampedProgress = min(1, max(0, progress))
+            let fillWidth = geo.size.width * clampedProgress
+
             VStack(spacing: 3) {
-                // Bar shell with shared 3D lighting + blue fill level
+                // The bar: glass tube with liquid fill
                 ZStack(alignment: .leading) {
+                    // Layer 1: Track background
                     Rectangle()
                         .fill(trackGradient)
 
-                    aquaFill(width: geo.size.width * clampedProgress)
+                    // Layer 2: Blue fill with soft banding
+                    if clampedProgress > 0 {
+                        Rectangle()
+                            .fill(fillGradient)
+                            .frame(width: fillWidth)
+                            .overlay { softBanding() }
+                            .clipped()
+                    }
+
+                    // Layer 3: Glass tube (full width, transparent)
+                    glassTubeOverlay
                 }
                 .frame(height: barHeight)
                 .clipShape(RoundedRectangle(cornerRadius: barCornerRadius, style: .continuous))
                 .overlay {
-                    barLightingOverlay
-                }
-                .overlay {
                     RoundedRectangle(cornerRadius: barCornerRadius, style: .continuous)
-                        .stroke(trackBorderGradient, lineWidth: 0.8)
+                        .stroke(borderGradient, lineWidth: 0.8)
                 }
-                .overlay(alignment: .bottom) {
-                    // Subtle drop shadow only below the full bar
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.black.opacity(0.10), Color.black.opacity(0.0)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(height: 1.2)
-                        .offset(y: 1)
-                }
+                .shadow(color: Color.black.opacity(0.08), radius: 0.5, y: 1)
 
                 // Labels below the bar
                 HStack {
@@ -99,79 +105,75 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
         .frame(height: 28)
     }
 
-    private func aquaFill(width: CGFloat) -> some View {
-        Rectangle()
-            .fill(fillBaseGradient)
-            .frame(width: max(width, 0), height: barHeight)
-            .overlay {
-                // Alternating vertical dark/light aqua bands
-                aquaBandOverlay()
+    // MARK: - Layer 3: Glass tube overlay
+
+    /// Cylinder illusion using only transparent white/black overlays.
+    /// Spans full bar width so the 3D effect covers both filled and unfilled regions.
+    private var glassTubeOverlay: some View {
+        ZStack {
+            // Top gloss: bright white fading down to clear
+            VStack(spacing: 0) {
+                LinearGradient(
+                    stops: [
+                        .init(color: .white.opacity(0.60), location: 0.0),
+                        .init(color: .white.opacity(0.20), location: 0.6),
+                        .init(color: .clear, location: 1.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: barHeight * 0.45)
+
+                Spacer(minLength: 0)
             }
+
+            // Equator shadow: subtle darkening at center of cylinder
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0.0),
+                    .init(color: .clear, location: 0.40),
+                    .init(color: .black.opacity(0.10), location: 0.54),
+                    .init(color: .clear, location: 0.68),
+                    .init(color: .clear, location: 1.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Top edge: bright pixel line
+            VStack(spacing: 0) {
+                Color.white.opacity(0.40)
+                    .frame(height: 0.5)
+                Spacer(minLength: 0)
+            }
+
+            // Bottom edge: dark pixel line
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+                Color.black.opacity(0.10)
+                    .frame(height: 0.5)
+            }
+        }
     }
 
-    private var barLightingOverlay: some View {
-        let highlightHeight = barHeight * 0.50
-        let shadowBandHeight = barHeight * 0.20
+    // MARK: - Soft banding texture
 
-        return Rectangle()
-            .overlay(alignment: .top) {
-                // Gloss highlight over upper half of the entire bar shell
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            stops: [
-                                .init(color: Color.white.opacity(0.72), location: 0.0),
-                                .init(color: Color.white.opacity(0.34), location: 0.56),
-                                .init(color: Color.white.opacity(0.05), location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(height: highlightHeight)
-            }
-            .overlay(alignment: .center) {
-                // Dark center strip
-                Rectangle()
-                    .fill(
-                        LinearGradient(
-                            stops: [
-                                .init(color: Color.black.opacity(0.0), location: 0.0),
-                                .init(color: Color.black.opacity(0.30), location: 0.5),
-                                .init(color: Color.black.opacity(0.0), location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(height: shadowBandHeight)
-                    .offset(y: barHeight * 0.04)
-            }
-            .overlay(alignment: .top) {
-                Rectangle()
-                    .fill(Color.white.opacity(0.52))
-                    .frame(height: 1)
-            }
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .fill(Color.black.opacity(0.16))
-                    .frame(height: 1)
-            }
-    }
-
-    private func aquaBandOverlay() -> some View {
+    /// Gentle vertical luminance ripples on the blue fill.
+    /// Uses high blur so bands blend smoothly — no hard edges.
+    private func softBanding() -> some View {
         GeometryReader { geo in
-            let cycleWidth: CGFloat = 14
-            let cycleCount = Int(ceil(geo.size.width / cycleWidth)) + 1
+            let cycleWidth: CGFloat = 16
+            let count = Int(ceil(geo.size.width / cycleWidth)) + 1
 
             HStack(spacing: 0) {
-                ForEach(0..<cycleCount, id: \.self) { _ in
+                ForEach(0..<count, id: \.self) { _ in
                     LinearGradient(
                         stops: [
-                            .init(color: Color(red: 0.04, green: 0.42, blue: 0.74).opacity(0.22), location: 0.0),
-                            .init(color: Color(red: 0.08, green: 0.50, blue: 0.82).opacity(0.11), location: 0.32),
-                            .init(color: Color(red: 0.68, green: 0.89, blue: 1.00).opacity(0.13), location: 0.58),
-                            .init(color: Color(red: 0.05, green: 0.43, blue: 0.75).opacity(0.20), location: 1.0)
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .white.opacity(0.10), location: 0.35),
+                            .init(color: .clear, location: 0.50),
+                            .init(color: .black.opacity(0.04), location: 0.65),
+                            .init(color: .clear, location: 1.0)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -179,18 +181,8 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
                     .frame(width: cycleWidth)
                 }
             }
-            .blur(radius: 0.28)
+            .blur(radius: 1.2)
             .frame(width: geo.size.width, height: geo.size.height, alignment: .leading)
-            .mask(
-                Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.86), Color.white.opacity(1.0)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-            )
         }
     }
 }
