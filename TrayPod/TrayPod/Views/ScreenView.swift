@@ -102,9 +102,9 @@ struct ScreenView: View {
 
     private var titleBar: some View {
         ZStack {
-            // Centered title - BIGGER and more prominent
+            // Centered title - Helvetica Neue (authentic iPod Classic font)
             Text(screenTitle)
-                .font(.system(size: 13, weight: .bold))
+                .font(.custom("Helvetica Neue", size: 13).weight(.bold))
                 .foregroundColor(screenTextColor)
 
             HStack {
@@ -252,9 +252,9 @@ struct MenuListView: View {
 
     private func menuRow(item: MenuItem, isSelected: Bool) -> some View {
         HStack(spacing: 0) {
-            // iPod 5G: Text-only menus, no icons
+            // iPod 5G: Text-only menus, Helvetica Neue
             Text(item.title)
-                .font(.system(size: 13, weight: .medium))
+                .font(.custom("Helvetica Neue", size: 13).weight(.medium))
 
             Spacer()
 
@@ -300,7 +300,7 @@ struct NowPlayingView: View {
             if let track = track {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
-                    .font(.system(size: 10))
+                    .font(.custom("Helvetica Neue", size: 10))
                     .foregroundColor(screenTextColor.opacity(0.6))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 6)
@@ -312,20 +312,20 @@ struct NowPlayingView: View {
                     albumArtwork(for: track)
                         .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                    // Track info on right
+                    // Track info on right - Helvetica Neue
                     VStack(alignment: .leading, spacing: 2) {
                         Text(track.title)
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.custom("Helvetica Neue", size: 12).weight(.bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(2)
 
                         Text(track.artist)
-                            .font(.system(size: 11))
+                            .font(.custom("Helvetica Neue", size: 11))
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
 
                         Text(track.album)
-                            .font(.system(size: 10))
+                            .font(.custom("Helvetica Neue", size: 10))
                             .foregroundColor(screenTextColor.opacity(0.7))
                             .lineLimit(1)
                     }
@@ -349,12 +349,12 @@ struct NowPlayingView: View {
                         .shadow(color: Color.black.opacity(0.2), radius: 2, x: 1, y: 1)
 
                     Text(playerViewModel.activeServiceName)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.custom("Helvetica Neue", size: 11).weight(.medium))
                         .foregroundColor(screenTextColor.opacity(0.5))
 
                     if !playerViewModel.hasActiveService {
                         Text("Open Spotify to control")
-                            .font(.system(size: 9))
+                            .font(.custom("Helvetica Neue", size: 9))
                             .foregroundColor(screenTextColor.opacity(0.4))
                     }
                 }
@@ -523,7 +523,7 @@ struct ColorSelectionView: View {
                 .padding(.trailing, 6)
 
             Text(color.rawValue)
-                .font(.system(size: 13, weight: .medium))
+                .font(.custom("Helvetica Neue", size: 13).weight(.medium))
 
             Spacer()
 
