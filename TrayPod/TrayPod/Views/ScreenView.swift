@@ -4,15 +4,18 @@ struct ScreenView: View {
     @ObservedObject var viewModel: iPodViewModel
 
     // iPod 5G (Video) - cool blue-tinted LCD background
-    private let screenBackgroundColor = Color(red: 0.94, green: 0.96, blue: 0.98)
-    private let screenTextColor = Color.black
+    private let screenBackgroundColor = Color(red: 0.93, green: 0.95, blue: 0.98)
+    private let screenTextColor = Color(red: 0.0, green: 0.0, blue: 0.05)  // Cool black
 
-    // iPod 5G title bar - blue-gray brushed metal style
+    // Cool black for shadows (20% blue shift)
+    private let coolBlack = Color(red: 0.0, green: 0.02, blue: 0.08)
+
+    // iPod 5G title bar - blue-gray brushed metal style (20% cooler)
     private let titleBarGradient = LinearGradient(
         colors: [
-            Color(red: 0.88, green: 0.91, blue: 0.95),  // Blue-tinted highlight at top
-            Color(red: 0.80, green: 0.83, blue: 0.88),  // Blue-gray mid
-            Color(red: 0.74, green: 0.77, blue: 0.82)   // Darker blue-gray at bottom
+            Color(red: 0.85, green: 0.89, blue: 0.95),  // Cool highlight at top
+            Color(red: 0.77, green: 0.81, blue: 0.88),  // Cool mid
+            Color(red: 0.71, green: 0.75, blue: 0.83)   // Cool bottom
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -35,7 +38,7 @@ struct ScreenView: View {
     private let screenWidth: CGFloat = 250  // Slightly wider
     private let screenHeight: CGFloat = 180
     private let bezelPadding: CGFloat = 5
-    private let titleBarHeight: CGFloat = 22
+    private let titleBarHeight: CGFloat = 18
 
     var body: some View {
         // Outer container - FIXED size, content doesn't affect this
@@ -58,29 +61,29 @@ struct ScreenView: View {
                     .padding(.horizontal, 6)
                     .background(titleBarGradient)
                     .overlay(alignment: .top) {
-                        // PROMINENT white highlight at top (Aqua style shine)
+                        // Cool white highlight at top (Aqua style shine)
                         Rectangle()
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        Color.white.opacity(0.85),
-                                        Color.white.opacity(0.4),
+                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.85),
+                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.4),
                                         Color.clear
                                     ],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
                             )
-                            .frame(height: 12)
+                            .frame(height: 10)
                     }
                     .overlay(alignment: .bottom) {
-                        // Intense crisp shadow at bottom (low spread, high contrast)
+                        // Subtle cool shadow at bottom
                         VStack(spacing: 0) {
                             Rectangle()
-                                .fill(Color.black.opacity(0.35))
+                                .fill(coolBlack.opacity(0.22))
                                 .frame(height: 1)
                             Rectangle()
-                                .fill(Color.black.opacity(0.12))
+                                .fill(coolBlack.opacity(0.08))
                                 .frame(height: 1)
                         }
                     }
