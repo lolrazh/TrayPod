@@ -3,16 +3,16 @@ import SwiftUI
 struct ScreenView: View {
     @ObservedObject var viewModel: iPodViewModel
 
-    // iPod 5G (Video) - white background LCD
-    private let screenBackgroundColor = Color.white
+    // iPod 5G (Video) - cool blue-tinted LCD background
+    private let screenBackgroundColor = Color(red: 0.94, green: 0.96, blue: 0.98)
     private let screenTextColor = Color.black
 
-    // iPod 5G title bar - brushed metal style gradient
+    // iPod 5G title bar - blue-gray brushed metal style
     private let titleBarGradient = LinearGradient(
         colors: [
-            Color(red: 0.92, green: 0.92, blue: 0.93),  // Bright highlight at top
-            Color(red: 0.84, green: 0.84, blue: 0.85),  // Mid
-            Color(red: 0.78, green: 0.78, blue: 0.79)   // Darker at bottom
+            Color(red: 0.88, green: 0.91, blue: 0.95),  // Blue-tinted highlight at top
+            Color(red: 0.80, green: 0.83, blue: 0.88),  // Blue-gray mid
+            Color(red: 0.74, green: 0.77, blue: 0.82)   // Darker blue-gray at bottom
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -40,8 +40,9 @@ struct ScreenView: View {
     var body: some View {
         // Outer container - FIXED size, content doesn't affect this
         ZStack {
-            // Screen bezel - BLACK like reference image
-            RoundedRectangle(cornerRadius: 8)
+            // Screen bezel - BLACK with rounded outer corners
+            // cornerRadius = bezelPadding ensures inner edge is sharp
+            RoundedRectangle(cornerRadius: bezelPadding)
                 .fill(Color.black)
 
             // LCD screen area - white background (sharp top, rounded bottom)
@@ -144,53 +145,18 @@ struct ScreenView: View {
         }
     }
 
+    // Simple battery - matches play button styling
     private var batteryIndicator: some View {
         HStack(spacing: 0) {
-            // Battery body with glossy green fill
-            ZStack {
-                // Outer border
-                RoundedRectangle(cornerRadius: 2)
-                    .stroke(screenTextColor.opacity(0.8), lineWidth: 1)
-                    .frame(width: 20, height: 9)
-
-                // Continuous green fill with glossy gradient
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.45, green: 0.95, blue: 0.45),  // Bright highlight
-                                Color(red: 0.25, green: 0.80, blue: 0.25),  // Mid green
-                                Color(red: 0.15, green: 0.65, blue: 0.15)   // Darker base
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 16, height: 5)
-                    .overlay(
-                        // Glossy shine highlight
-                        RoundedRectangle(cornerRadius: 1)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.6),
-                                        Color.white.opacity(0.0)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .center
-                                )
-                            )
-                            .frame(height: 2)
-                            .offset(y: -1)
-                        , alignment: .top
-                    )
-            }
+            // Battery body - solid dark green, no border
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(Color(red: 0.15, green: 0.55, blue: 0.15))
+                .frame(width: 18, height: 8)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
-                .fill(screenTextColor.opacity(0.8))
+                .fill(Color(red: 0.15, green: 0.55, blue: 0.15))
                 .frame(width: 2, height: 4)
-                .offset(x: 1)
         }
     }
 

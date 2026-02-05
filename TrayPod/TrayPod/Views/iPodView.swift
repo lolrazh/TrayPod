@@ -31,9 +31,9 @@ struct iPodView: View {
                 )
 
             VStack(spacing: 16) {
-                // Screen area
+                // Screen area - thinner margins for larger screen appearance
                 ScreenView(viewModel: viewModel)
-                    .padding(.top, 20)
+                    .padding(.top, 14)
 
                 Spacer()
 
@@ -41,7 +41,7 @@ struct iPodView: View {
                 ClickWheelView(viewModel: viewModel)
                     .padding(.bottom, 45)
             }
-            .padding(.horizontal, 25)
+            .padding(.horizontal, 18)
 
             // iPod 5G glossy polycarbonate reflection - prominent top highlight
             VStack {

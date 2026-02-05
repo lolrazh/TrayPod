@@ -7,8 +7,8 @@ struct ClickWheelView: View {
     @State private var pressedZone: WheelZone?
     @State private var centerPressed: Bool = false
 
-    private let wheelSize: CGFloat = 198  // 10% larger
-    private let centerButtonSize: CGFloat = 72   // 10% larger
+    private let wheelSize: CGFloat = 178  // Reduced 10%
+    private let centerButtonSize: CGFloat = 65   // Reduced 10%
 
     enum WheelZone: Equatable {
         case menu, forward, back, playPause
@@ -197,8 +197,8 @@ struct WheelGestureView: NSViewRepresentable {
 }
 
 class WheelNSView: NSView {
-    var wheelSize: CGFloat = 198
-    var centerButtonSize: CGFloat = 72
+    var wheelSize: CGFloat = 178
+    var centerButtonSize: CGFloat = 65
 
     var onZonePress: ((ClickWheelView.WheelZone?) -> Void)?
     var onCenterPress: ((Bool) -> Void)?
