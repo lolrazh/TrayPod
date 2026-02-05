@@ -284,8 +284,12 @@ struct NowPlayingView: View {
     @ObservedObject var viewModel: iPodViewModel
     @ObservedObject var playerViewModel: PlayerViewModel
 
+    // MARK: - Design System
     private let screenTextColor = Color.black
-    private let artworkSize: CGFloat = 70 // Album art size
+    private let artworkSize: CGFloat = 70
+    private let horizontalPadding: CGFloat = 10  // Consistent padding
+    private let bodyFont = Font.custom("Helvetica Neue", size: 11).weight(.bold)
+    private let smallFont = Font.custom("Helvetica Neue", size: 10).weight(.bold)
 
     private var playerState: PlayerState {
         playerViewModel.state
@@ -300,46 +304,46 @@ struct NowPlayingView: View {
             if let track = track {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
-                    .font(.custom("Helvetica Neue", size: 10).weight(.bold))
+                    .font(smallFont)
                     .foregroundColor(screenTextColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 6)
-                    .padding(.top, 4)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, 2)
 
-                // Main content: Album art LEFT, details RIGHT
-                HStack(alignment: .top, spacing: 10) {
+                // Main content: Album art LEFT, details RIGHT (vertically centered)
+                HStack(alignment: .center, spacing: 10) {
                     // Album artwork on left
                     albumArtwork(for: track)
                         .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                    // Track info on right - all bold, all black, more spacing
+                    // Track info on right - vertically centered with album art
                     VStack(alignment: .leading, spacing: 4) {
                         Text(track.title)
-                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
+                            .font(bodyFont)
                             .foregroundColor(screenTextColor)
                             .lineLimit(2)
 
                         Text(track.artist)
-                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
+                            .font(bodyFont)
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
 
                         Text(track.album)
-                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
+                            .font(bodyFont)
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 6)
-                .padding(.top, 4)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 2)
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                // Progress bar at bottom
+                // Progress bar at bottom - pushed up closer to content
                 progressBar
-                    .padding(.horizontal, 6)
-                    .padding(.bottom, 4)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.bottom, 6)
             } else {
                 // No track playing
                 Spacer()
@@ -424,32 +428,32 @@ struct NowPlayingView: View {
 
     private var progressBar: some View {
         GeometryReader { geo in
-            VStack(spacing: 2) {
-                // iPod 5G progress bar - simple thick bar, NO thumb
+            VStack(spacing: 3) {
+                // iPod 5G progress bar - taller, more prominent
                 ZStack(alignment: .leading) {
                     // Background track - gray unfilled portion
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(Color.gray.opacity(0.35))
-                        .frame(height: 10)
+                        .frame(height: 14)
 
                     // Filled progress with blue gradient
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(progressGradient)
-                        .frame(width: max(0, geo.size.width * playerState.progress), height: 7)
+                        .frame(width: max(0, geo.size.width * playerState.progress), height: 14)
                 }
 
-                // Time labels - bold black like reference
+                // Time labels - using design system font
                 HStack {
                     Text(Track.formatTime(playerState.playbackPosition))
-                        .font(.custom("Helvetica Neue", size: 10).weight(.bold))
+                        .font(smallFont)
                     Spacer()
                     Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(.custom("Helvetica Neue", size: 10).weight(.bold))
+                        .font(smallFont)
                 }
                 .foregroundColor(screenTextColor)
             }
         }
-        .frame(height: 22)
+        .frame(height: 28)
     }
 }
 
