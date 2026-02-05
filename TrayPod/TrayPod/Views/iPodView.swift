@@ -30,18 +30,18 @@ struct iPodView: View {
                     lineWidth: 1
                 )
 
-            VStack(spacing: 20) {
+            VStack(spacing: 16) {
                 // Screen area
                 ScreenView(viewModel: viewModel)
-                    .padding(.top, 25)
+                    .padding(.top, 20)
 
                 Spacer()
 
                 // Click wheel - flush with body
                 ClickWheelView(viewModel: viewModel)
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 25)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 25)
 
             // iPod 5G glossy polycarbonate reflection - prominent top highlight
             VStack {
@@ -63,7 +63,7 @@ struct iPodView: View {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .allowsHitTesting(false)
         }
-        .frame(width: 350, height: 560)
+        .frame(width: 290, height: 490)  // Proper iPod 5G proportions
     }
 }
 

@@ -32,7 +32,7 @@ struct ScreenView: View {
     )
 
     // Fixed screen dimensions - NEVER changes
-    private let screenWidth: CGFloat = 310
+    private let screenWidth: CGFloat = 240  // 4:3 aspect ratio (240x180)
     private let screenHeight: CGFloat = 180
     private let bezelPadding: CGFloat = 5
     private let titleBarHeight: CGFloat = 22
