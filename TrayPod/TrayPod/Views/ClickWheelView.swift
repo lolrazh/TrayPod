@@ -114,8 +114,10 @@ struct ClickWheelView: View {
     private var clickZoneLabels: some View {
         // ALWAYS white icons/text - matches reference image (even on white iPod)
         let textColor = Color.white
-        // Position labels in the middle of the touch ring
-        let labelOffset = (wheelSize / 2 + centerButtonSize / 2) / 2  // ~90 from center
+        // Position labels toward outer edge of the ring (65% outward)
+        let innerRadius = centerButtonSize / 2
+        let outerRadius = wheelSize / 2
+        let labelOffset = innerRadius + (outerRadius - innerRadius) * 0.65
 
         return ZStack {
             // Menu (top)

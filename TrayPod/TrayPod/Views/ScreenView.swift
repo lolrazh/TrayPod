@@ -45,8 +45,8 @@ struct ScreenView: View {
             RoundedRectangle(cornerRadius: bezelPadding)
                 .fill(Color.black)
 
-            // LCD screen area - white background (sharp top, rounded bottom)
-            BottomRoundedRectangle(radius: 4)
+            // LCD screen area - sharp corners, black bezel wraps around
+            Rectangle()
                 .fill(screenBackgroundColor)
                 .padding(bezelPadding)
 
@@ -95,7 +95,7 @@ struct ScreenView: View {
                     .clipped()
             }
             .padding(bezelPadding)
-            .clipShape(BottomRoundedRectangle(radius: 4))
+            .clipShape(Rectangle())
         }
         .frame(width: screenWidth, height: screenHeight)
         .fixedSize()  // Prevent parent from affecting size
