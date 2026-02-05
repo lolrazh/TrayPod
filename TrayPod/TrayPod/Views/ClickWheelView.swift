@@ -73,7 +73,7 @@ struct ClickWheelView: View {
                         colors: [
                             Color.clear,                    // Center (won't be visible anyway)
                             Color.clear,                    // Inner region
-                            Color.black.opacity(0.06)       // Outer edge shadow
+                            Color.black.opacity(0.015)      // Outer edge shadow
                         ],
                         center: .center,
                         startRadius: ringMidRadius,
@@ -86,7 +86,7 @@ struct ClickWheelView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color.black.opacity(0.05),      // Inner edge shadow
+                            Color.black.opacity(0.012),     // Inner edge shadow
                             Color.clear,                    // Fades to transparent
                             Color.clear                     // Outer region
                         ],

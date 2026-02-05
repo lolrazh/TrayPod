@@ -121,61 +121,12 @@ struct ScreenView: View {
         }
     }
 
-    // Aqua-style play/pause button for title bar
+    // Simple play/pause icon for title bar (iPod-style)
     private var playPauseButton: some View {
         Button(action: { viewModel.playerViewModel.togglePlayPause() }) {
-            ZStack {
-                // Button background with gradient
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.45, green: 0.75, blue: 1.0),
-                                Color(red: 0.25, green: 0.55, blue: 0.95),
-                                Color(red: 0.15, green: 0.45, blue: 0.85)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: 20, height: 16)
-
-                // Inner shadow effect
-                RoundedRectangle(cornerRadius: 3)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.black.opacity(0.3),
-                                Color.clear,
-                                Color.white.opacity(0.3)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 1
-                    )
-                    .frame(width: 20, height: 16)
-
-                // Glossy highlight at top
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.5),
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-                    .frame(width: 16, height: 7)
-                    .offset(y: -2)
-
-                // Play/Pause icon
-                Image(systemName: viewModel.playerViewModel.state.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 8, weight: .bold))
-                    .foregroundColor(.white)
-            }
+            Image(systemName: viewModel.playerViewModel.state.isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(Color(red: 0.0, green: 0.50, blue: 0.85))
         }
         .buttonStyle(.plain)
     }
@@ -347,11 +298,12 @@ struct NowPlayingView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let track = track {
-                // Track position "1 of 1" centered at top
+                // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
                     .font(.system(size: 10))
                     .foregroundColor(screenTextColor.opacity(0.6))
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 6)
                     .padding(.top, 4)
 
                 // Main content: Album art LEFT, details RIGHT
