@@ -106,10 +106,10 @@ struct ScreenView: View {
 
     private var titleBar: some View {
         ZStack {
-            // Centered title - Helvetica Neue (authentic iPod Classic font)
+            // Centered title - solid black text (not affected by gradient)
             Text(screenTitle)
                 .font(.custom("Helvetica Neue", size: 12).weight(.bold))
-                .foregroundColor(screenTextColor)
+                .foregroundColor(Color(red: 0.05, green: 0.05, blue: 0.08))  // Solid cool black
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             HStack {
@@ -127,31 +127,17 @@ struct ScreenView: View {
         }
     }
 
-    // Play/pause icon for title bar with inner shadow
+    // Play/pause icon for title bar - bright blue with subtle inner shadow
     private var playPauseButton: some View {
         let isPlaying = viewModel.playerViewModel.state.isPlaying
         return Button(action: { viewModel.playerViewModel.togglePlayPause() }) {
-            ZStack {
-                // Icon
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(Color(red: 0.0, green: 0.45, blue: 0.82))
-
-                // Inner shadow overlay
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundColor(.clear)
-                    .background(
-                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(coolBlack.opacity(0.4))
-                            .offset(x: 0.5, y: 0.5)
-                            .blur(radius: 0.5)
-                    )
-            }
+            Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundColor(Color(red: 0.1, green: 0.55, blue: 0.95))  // Bright blue
+                .shadow(color: coolBlack.opacity(0.15), radius: 0.3, x: 0.2, y: 0.2)
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isPlaying)
+        .animation(.easeInOut(duration: 0.1), value: isPlaying)
     }
 
     private var screenTitle: String {
@@ -167,35 +153,18 @@ struct ScreenView: View {
         }
     }
 
-    // Battery with inner shadow and gray outline
+    // Battery with subtle inner shadow and gray outline
     private var batteryIndicator: some View {
         HStack(spacing: 0) {
             // Battery body
-            ZStack {
-                // Green fill
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(Color(red: 0.18, green: 0.52, blue: 0.18))
-                    .frame(width: 16, height: 7)
-
-                // Inner shadow (top-left dark)
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                coolBlack.opacity(0.3),
-                                Color.clear
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 16, height: 7)
-
-                // Gray outline
-                RoundedRectangle(cornerRadius: 1.5)
-                    .stroke(Color(red: 0.45, green: 0.47, blue: 0.52), lineWidth: 0.5)
-                    .frame(width: 16, height: 7)
-            }
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(Color(red: 0.25, green: 0.68, blue: 0.25))  // Bright green
+                .frame(width: 16, height: 7)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .stroke(Color(red: 0.45, green: 0.47, blue: 0.52), lineWidth: 0.5)
+                )
+                .shadow(color: coolBlack.opacity(0.1), radius: 0.2, x: 0.2, y: 0.2)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)

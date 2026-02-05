@@ -28,8 +28,9 @@ class iPodViewModel: ObservableObject {
         }
     }
 
-    // Player state
+    // Player state - forward changes to trigger view updates
     let playerViewModel = PlayerViewModel()
+    private var playerCancellable: AnyCancellable?
 
     // Scroll accumulator for smooth scrolling
     private var scrollAccumulator: CGFloat = 0
@@ -87,6 +88,13 @@ class iPodViewModel: ObservableObject {
         self.selectedColor = PersistenceManager.shared.selectedColor
         self.soundEnabled = PersistenceManager.shared.soundEnabled
         self.hapticEnabled = PersistenceManager.shared.hapticEnabled
+
+        // Forward playerViewModel changes to trigger view updates
+        playerCancellable = playerViewModel.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
     }
 
     // MARK: - Click Wheel Actions
