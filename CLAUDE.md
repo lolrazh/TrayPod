@@ -94,9 +94,7 @@ open ~/Library/Developer/Xcode/DerivedData/TrayPod-*/Build/Products/Debug/TrayPo
 
 ## Known Issues / TODO
 - AppleScript requires user permission on first use
-- No album artwork yet (Spotify API would be needed)
 - No seek functionality yet (wheel could scrub progress bar)
-- Spotify sync is polling-based (should use DistributedNotificationCenter)
 
 ---
 

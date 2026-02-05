@@ -71,26 +71,6 @@ enum iPodColor: String, CaseIterable, Identifiable {
         }
     }
 
-    // Text color on wheel
-    var wheelTextColor: Color {
-        switch self {
-        case .white, .silver, .pink:
-            return Color(red: 0.4, green: 0.4, blue: 0.4)
-        case .black, .u2, .red, .blue, .green:
-            return Color(red: 0.85, green: 0.85, blue: 0.85)
-        }
-    }
-
-    // Screen bezel color
-    var bezelColor: Color {
-        switch self {
-        case .white, .silver, .pink:
-            return Color(red: 0.5, green: 0.5, blue: 0.52)
-        case .black, .u2, .red, .blue, .green:
-            return Color(red: 0.1, green: 0.1, blue: 0.1)
-        }
-    }
-
     // iPod 5G: Whether this is a glossy polycarbonate finish (white/black)
     var isGlossyFinish: Bool {
         switch self {
