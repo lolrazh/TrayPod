@@ -181,7 +181,8 @@ struct ScreenView: View {
                 MenuListView(viewModel: viewModel)
             case .nowPlaying:
                 NowPlayingView(viewModel: viewModel, playerViewModel: viewModel.playerViewModel)
-            case .colorSelection:
+                    .drawingGroup()
+case .colorSelection:
                 ColorSelectionView(viewModel: viewModel)
             }
         }
