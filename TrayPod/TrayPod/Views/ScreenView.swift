@@ -102,9 +102,9 @@ struct ScreenView: View {
 
     private var titleBar: some View {
         ZStack {
-            // Centered title - Avenir Next (closest to iPod's Podium Sans)
+            // Centered title - BIGGER and more prominent
             Text(screenTitle)
-                .font(.custom("Avenir Next", size: 13).weight(.semibold))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundColor(screenTextColor)
 
             HStack {
@@ -252,9 +252,9 @@ struct MenuListView: View {
 
     private func menuRow(item: MenuItem, isSelected: Bool) -> some View {
         HStack(spacing: 0) {
-            // iPod 5G: Text-only menus, Avenir Next font
+            // iPod 5G: Text-only menus, no icons
             Text(item.title)
-                .font(.custom("Avenir Next", size: 13).weight(.medium))
+                .font(.system(size: 13, weight: .medium))
 
             Spacer()
 
@@ -300,7 +300,7 @@ struct NowPlayingView: View {
             if let track = track {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
-                    .font(.custom("Avenir Next", size: 10))
+                    .font(.system(size: 10))
                     .foregroundColor(screenTextColor.opacity(0.6))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 6)
@@ -312,20 +312,20 @@ struct NowPlayingView: View {
                     albumArtwork(for: track)
                         .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                    // Track info on right - Avenir Next font
+                    // Track info on right
                     VStack(alignment: .leading, spacing: 2) {
                         Text(track.title)
-                            .font(.custom("Avenir Next", size: 12).weight(.semibold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(2)
 
                         Text(track.artist)
-                            .font(.custom("Avenir Next", size: 11))
+                            .font(.system(size: 11))
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
 
                         Text(track.album)
-                            .font(.custom("Avenir Next", size: 10))
+                            .font(.system(size: 10))
                             .foregroundColor(screenTextColor.opacity(0.7))
                             .lineLimit(1)
                     }
@@ -349,12 +349,12 @@ struct NowPlayingView: View {
                         .shadow(color: Color.black.opacity(0.2), radius: 2, x: 1, y: 1)
 
                     Text(playerViewModel.activeServiceName)
-                        .font(.custom("Avenir Next", size: 11).weight(.medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(screenTextColor.opacity(0.5))
 
                     if !playerViewModel.hasActiveService {
                         Text("Open Spotify to control")
-                            .font(.custom("Avenir Next", size: 9))
+                            .font(.system(size: 9))
                             .foregroundColor(screenTextColor.opacity(0.4))
                     }
                 }
@@ -523,7 +523,7 @@ struct ColorSelectionView: View {
                 .padding(.trailing, 6)
 
             Text(color.rawValue)
-                .font(.custom("Avenir Next", size: 13).weight(.medium))
+                .font(.system(size: 13, weight: .medium))
 
             Spacer()
 
