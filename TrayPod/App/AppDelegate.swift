@@ -11,6 +11,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupPopover()
         setupEventMonitor()
 
+        // Initialize haptic manager early
+        _ = HapticManager.shared
+
         // Hide dock icon since this is a menu bar app
         NSApp.setActivationPolicy(.accessory)
     }
