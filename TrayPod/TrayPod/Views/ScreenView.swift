@@ -35,7 +35,7 @@ struct ScreenView: View {
     private let screenWidth: CGFloat = 310
     private let screenHeight: CGFloat = 180
     private let bezelPadding: CGFloat = 5
-    private let titleBarHeight: CGFloat = 26
+    private let titleBarHeight: CGFloat = 22
 
     var body: some View {
         // Outer container - FIXED size, content doesn't affect this
@@ -300,7 +300,7 @@ struct NowPlayingView: View {
             if let track = track {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
-                    .font(.custom("Helvetica Neue", size: 10))
+                    .font(.custom("Helvetica Neue", size: 10).weight(.bold))
                     .foregroundColor(screenTextColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 6)
@@ -312,20 +312,20 @@ struct NowPlayingView: View {
                     albumArtwork(for: track)
                         .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
-                    // Track info on right - all same size, all black like reference
-                    VStack(alignment: .leading, spacing: 2) {
+                    // Track info on right - all bold, all black, more spacing
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(track.title)
                             .font(.custom("Helvetica Neue", size: 11).weight(.bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(2)
 
                         Text(track.artist)
-                            .font(.custom("Helvetica Neue", size: 11))
+                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
 
                         Text(track.album)
-                            .font(.custom("Helvetica Neue", size: 11))
+                            .font(.custom("Helvetica Neue", size: 11).weight(.bold))
                             .foregroundColor(screenTextColor)
                             .lineLimit(1)
                     }
@@ -430,7 +430,7 @@ struct NowPlayingView: View {
                     // Background track - gray unfilled portion
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Color.gray.opacity(0.35))
-                        .frame(height: 7)
+                        .frame(height: 10)
 
                     // Filled progress with blue gradient
                     RoundedRectangle(cornerRadius: 3)
@@ -438,13 +438,13 @@ struct NowPlayingView: View {
                         .frame(width: max(0, geo.size.width * playerState.progress), height: 7)
                 }
 
-                // Time labels - black like reference
+                // Time labels - bold black like reference
                 HStack {
                     Text(Track.formatTime(playerState.playbackPosition))
-                        .font(.custom("Helvetica Neue", size: 10))
+                        .font(.custom("Helvetica Neue", size: 10).weight(.bold))
                     Spacer()
                     Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(.custom("Helvetica Neue", size: 10))
+                        .font(.custom("Helvetica Neue", size: 10).weight(.bold))
                 }
                 .foregroundColor(screenTextColor)
             }
