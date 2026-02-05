@@ -8,7 +8,7 @@ struct ClickWheelView: View {
     @State private var centerPressed: Bool = false
 
     private let wheelSize: CGFloat = 260
-    private let centerButtonSize: CGFloat = 90
+    private let centerButtonSize: CGFloat = 100  // ~38% of wheel, closer to real iPod proportions
 
     enum WheelZone: Equatable {
         case menu, forward, back, playPause
@@ -16,12 +16,12 @@ struct ClickWheelView: View {
 
     var body: some View {
         ZStack {
-            // Outer wheel with subtle gradient
+            // Outer wheel - minimal shadow since it's nearly flush with body
             Circle()
                 .fill(
                     RadialGradient(
                         colors: [
-                            viewModel.selectedColor.wheelColor.opacity(1.1),
+                            viewModel.selectedColor.wheelColor.opacity(1.05),
                             viewModel.selectedColor.wheelColor
                         ],
                         center: .center,
@@ -30,7 +30,7 @@ struct ClickWheelView: View {
                     )
                 )
                 .frame(width: wheelSize, height: wheelSize)
-                .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
 
             // Brushed metal texture for silver/white variants
             if viewModel.selectedColor.hasBrushedMetalWheel {
@@ -38,11 +38,11 @@ struct ClickWheelView: View {
                     .fill(
                         AngularGradient(
                             colors: [
-                                Color.white.opacity(0.15),
-                                Color.gray.opacity(0.05),
                                 Color.white.opacity(0.12),
-                                Color.gray.opacity(0.08),
-                                Color.white.opacity(0.15)
+                                Color.gray.opacity(0.04),
+                                Color.white.opacity(0.10),
+                                Color.gray.opacity(0.06),
+                                Color.white.opacity(0.12)
                             ],
                             center: .center
                         )
@@ -50,15 +50,15 @@ struct ClickWheelView: View {
                     .frame(width: wheelSize, height: wheelSize)
             }
 
-            // Concentric groove rings (5 subtle circles)
+            // Concentric groove rings - start right outside center button
             ForEach(0..<5, id: \.self) { i in
-                let grooveRadius = centerButtonSize / 2 + 25 + CGFloat(i) * 18
+                let grooveRadius = centerButtonSize / 2 + 8 + CGFloat(i) * 14
                 Circle()
                     .stroke(
                         LinearGradient(
                             colors: [
-                                Color.black.opacity(0.06),
-                                Color.white.opacity(0.04)
+                                Color.black.opacity(0.04),
+                                Color.white.opacity(0.03)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -68,43 +68,20 @@ struct ClickWheelView: View {
                     .frame(width: grooveRadius * 2, height: grooveRadius * 2)
             }
 
-            // Inner ring shadow effect
-            Circle()
-                .stroke(
-                    LinearGradient(
-                        colors: [.black.opacity(0.1), .clear],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 2
-                )
-                .frame(width: centerButtonSize + 20, height: centerButtonSize + 20)
-
             // Click zone labels with press states
             clickZoneLabels
 
-            // Center button outer shadow ring (inset depth effect)
+            // Subtle hairline gap between center and wheel (just visual separation)
             Circle()
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.black.opacity(0.15),
-                            Color.black.opacity(0.05),
-                            Color.white.opacity(0.1)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 2
-                )
-                .frame(width: centerButtonSize + 4, height: centerButtonSize + 4)
+                .stroke(Color.black.opacity(0.12), lineWidth: 1)
+                .frame(width: centerButtonSize + 2, height: centerButtonSize + 2)
 
-            // Center button with press effect
+            // Center button with minimal press effect
             Circle()
                 .fill(viewModel.selectedColor.centerButtonColor)
                 .frame(width: centerButtonSize, height: centerButtonSize)
-                .shadow(color: .black.opacity(centerPressed ? 0.05 : 0.15), radius: centerPressed ? 1 : 3, x: 0, y: centerPressed ? 0 : 2)
-                .scaleEffect(centerPressed ? 0.97 : 1.0)
+                .shadow(color: .black.opacity(centerPressed ? 0.02 : 0.06), radius: centerPressed ? 0.5 : 1, x: 0, y: centerPressed ? 0 : 0.5)
+                .scaleEffect(centerPressed ? 0.98 : 1.0)
                 .animation(.easeInOut(duration: 0.1), value: centerPressed)
 
             // Unified gesture handler for the whole wheel
@@ -126,6 +103,8 @@ struct ClickWheelView: View {
 
     private var clickZoneLabels: some View {
         let textColor = viewModel.selectedColor.wheelTextColor
+        // Position labels in the middle of the touch ring
+        let labelOffset = (wheelSize / 2 + centerButtonSize / 2) / 2  // ~90 from center
 
         return ZStack {
             // Menu (top)
@@ -133,28 +112,28 @@ struct ClickWheelView: View {
                 .font(.system(size: 11, weight: .bold))
                 .foregroundColor(textColor)
                 .opacity(pressedZone == .menu ? 0.5 : 1.0)
-                .offset(y: -wheelSize / 2 + 30)
+                .offset(y: -labelOffset)
 
             // Forward (right)
             Image(systemName: "forward.end.fill")
                 .font(.system(size: 14))
                 .foregroundColor(textColor)
                 .opacity(pressedZone == .forward ? 0.5 : 1.0)
-                .offset(x: wheelSize / 2 - 35)
+                .offset(x: labelOffset)
 
             // Back (left)
             Image(systemName: "backward.end.fill")
                 .font(.system(size: 14))
                 .foregroundColor(textColor)
                 .opacity(pressedZone == .back ? 0.5 : 1.0)
-                .offset(x: -wheelSize / 2 + 35)
+                .offset(x: -labelOffset)
 
             // Play/Pause (bottom)
             Image(systemName: "playpause.fill")
                 .font(.system(size: 16))
                 .foregroundColor(textColor)
                 .opacity(pressedZone == .playPause ? 0.5 : 1.0)
-                .offset(y: wheelSize / 2 - 30)
+                .offset(y: labelOffset)
         }
         .animation(.easeInOut(duration: 0.08), value: pressedZone)
     }
@@ -208,7 +187,7 @@ struct WheelGestureView: NSViewRepresentable {
 
 class WheelNSView: NSView {
     var wheelSize: CGFloat = 260
-    var centerButtonSize: CGFloat = 90
+    var centerButtonSize: CGFloat = 100
 
     var onZonePress: ((ClickWheelView.WheelZone?) -> Void)?
     var onCenterPress: ((Bool) -> Void)?
