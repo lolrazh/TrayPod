@@ -113,7 +113,7 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .colorSelection:
@@ -125,19 +125,19 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .nowPlaying:
             // On now playing, wheel controls volume
             let volumeDelta = Float(offset) * volumeStep
             playerViewModel.adjustVolume(by: volumeDelta)
-            playFeedback()
+            playScrollFeedback()
         }
     }
 
     func centerButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
 
         switch currentScreen {
         case .main, .settings:
@@ -168,22 +168,22 @@ class iPodViewModel: ObservableObject {
     }
 
     func menuButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         goBack()
     }
 
     func playPauseButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.togglePlayPause()
     }
 
     func nextButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.nextTrack()
     }
 
     func previousButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.previousTrack()
     }
 
@@ -214,14 +214,25 @@ class iPodViewModel: ObservableObject {
 
     func selectColor(_ color: iPodColor) {
         selectedColor = color
-        playFeedback()
+        playButtonFeedback()
     }
 
     // MARK: - Feedback
 
-    private func playFeedback() {
+    /// Feedback for wheel scrolling (menu navigation)
+    private func playScrollFeedback() {
         if soundEnabled {
             SoundManager.shared.playClick()
+        }
+        if hapticEnabled {
+            HapticManager.shared.click()
+        }
+    }
+
+    /// Feedback for button presses
+    private func playButtonFeedback() {
+        if soundEnabled {
+            SoundManager.shared.playButtonClick()
         }
         if hapticEnabled {
             HapticManager.shared.click()

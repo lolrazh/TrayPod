@@ -24,6 +24,8 @@
 		A1000017001 /* MusicServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000017000 /* MusicServiceProtocol.swift */; };
 		A1000018001 /* SpotifyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000018000 /* SpotifyService.swift */; };
 		A1000019001 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019000 /* PlayerViewModel.swift */; };
+		A1000020001 /* Click.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* Click.mp3 */; };
+		A1000021001 /* ButtonClickDown.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* ButtonClickDown.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +49,8 @@
 		A1000017000 /* MusicServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicServiceProtocol.swift; sourceTree = "<group>"; };
 		A1000018000 /* SpotifyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyService.swift; sourceTree = "<group>"; };
 		A1000019000 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
+		A1000020000 /* Click.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Click.mp3; sourceTree = "<group>"; };
+		A1000021000 /* ButtonClickDown.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ButtonClickDown.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,8 +158,18 @@
 			isa = PBXGroup;
 			children = (
 				A1000012000 /* Assets.xcassets */,
+				A1SNDGROUP0 /* Sounds */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		A1SNDGROUP0 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				A1000020000 /* Click.mp3 */,
+				A1000021000 /* ButtonClickDown.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -217,6 +231,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000012001 /* Assets.xcassets in Resources */,
+				A1000020001 /* Click.mp3 in Resources */,
+				A1000021001 /* ButtonClickDown.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
