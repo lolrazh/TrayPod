@@ -108,11 +108,12 @@ struct ScreenView: View {
         ZStack {
             // Centered title - Helvetica Neue (authentic iPod Classic font)
             Text(screenTitle)
-                .font(.custom("Helvetica Neue", size: 13).weight(.bold))
+                .font(.custom("Helvetica Neue", size: 12).weight(.bold))
                 .foregroundColor(screenTextColor)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             HStack {
-                // Play button on left (only on Now Playing)
+                // Play/Pause button on left (only on Now Playing)
                 if viewModel.currentScreen == .nowPlaying {
                     playPauseButton
                 }
@@ -122,17 +123,35 @@ struct ScreenView: View {
                 // Battery on the right
                 batteryIndicator
             }
+            .frame(maxHeight: .infinity)
         }
     }
 
-    // Simple play/pause icon for title bar (iPod-style)
+    // Play/pause icon for title bar with inner shadow
     private var playPauseButton: some View {
-        Button(action: { viewModel.playerViewModel.togglePlayPause() }) {
-            Image(systemName: viewModel.playerViewModel.state.isPlaying ? "pause.fill" : "play.fill")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(Color(red: 0.0, green: 0.50, blue: 0.85))
+        let isPlaying = viewModel.playerViewModel.state.isPlaying
+        return Button(action: { viewModel.playerViewModel.togglePlayPause() }) {
+            ZStack {
+                // Icon
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(Color(red: 0.0, green: 0.45, blue: 0.82))
+
+                // Inner shadow overlay
+                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.clear)
+                    .background(
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(coolBlack.opacity(0.4))
+                            .offset(x: 0.5, y: 0.5)
+                            .blur(radius: 0.5)
+                    )
+            }
         }
         .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.15), value: isPlaying)
     }
 
     private var screenTitle: String {
@@ -148,18 +167,40 @@ struct ScreenView: View {
         }
     }
 
-    // Simple battery - matches play button styling
+    // Battery with inner shadow and gray outline
     private var batteryIndicator: some View {
         HStack(spacing: 0) {
-            // Battery body - solid dark green, no border
-            RoundedRectangle(cornerRadius: 1.5)
-                .fill(Color(red: 0.15, green: 0.55, blue: 0.15))
-                .frame(width: 18, height: 8)
+            // Battery body
+            ZStack {
+                // Green fill
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color(red: 0.18, green: 0.52, blue: 0.18))
+                    .frame(width: 16, height: 7)
+
+                // Inner shadow (top-left dark)
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                coolBlack.opacity(0.3),
+                                Color.clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 16, height: 7)
+
+                // Gray outline
+                RoundedRectangle(cornerRadius: 1.5)
+                    .stroke(Color(red: 0.45, green: 0.47, blue: 0.52), lineWidth: 0.5)
+                    .frame(width: 16, height: 7)
+            }
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
-                .fill(Color(red: 0.15, green: 0.55, blue: 0.15))
-                .frame(width: 2, height: 4)
+                .fill(Color(red: 0.45, green: 0.47, blue: 0.52))
+                .frame(width: 1.5, height: 3)
         }
     }
 
