@@ -16,22 +16,23 @@ struct ClickWheelView: View {
 
     var body: some View {
         ZStack {
-            // iPod 5G: Completely flush wheel, no shadow, no grooves
+            // iPod 5G: Completely flush wheel
             Circle()
                 .fill(viewModel.selectedColor.wheelColor)
                 .frame(width: wheelSize, height: wheelSize)
 
-            // Subtle plastic texture for wheel surface (very subtle)
+            // Subtle inward shadow on wheel from left and right sides
             Circle()
                 .fill(
-                    RadialGradient(
+                    LinearGradient(
                         colors: [
-                            Color.white.opacity(0.03),
-                            Color.clear
+                            Color.black.opacity(0.06),
+                            Color.clear,
+                            Color.clear,
+                            Color.black.opacity(0.06)
                         ],
-                        center: .topLeading,
-                        startRadius: 0,
-                        endRadius: wheelSize * 0.7
+                        startPoint: .leading,
+                        endPoint: .trailing
                     )
                 )
                 .frame(width: wheelSize, height: wheelSize)
@@ -39,51 +40,16 @@ struct ClickWheelView: View {
             // Click zone labels with press states
             clickZoneLabels
 
-            // Center button with subtle inward shadow from sides
-            ZStack {
-                // Base button
-                Circle()
-                    .fill(viewModel.selectedColor.centerButtonColor)
-                    .frame(width: centerButtonSize, height: centerButtonSize)
-
-                // Inward shadow from left and right sides (recessed look)
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.black.opacity(0.08),
-                                Color.clear,
-                                Color.clear,
-                                Color.black.opacity(0.08)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: centerButtonSize, height: centerButtonSize)
-
-                // Subtle top-to-bottom gradient for depth
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.black.opacity(0.03),
-                                Color.clear,
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: centerButtonSize, height: centerButtonSize)
-
-                // Hairline border
-                Circle()
-                    .stroke(Color.black.opacity(0.08), lineWidth: 0.5)
-                    .frame(width: centerButtonSize, height: centerButtonSize)
-            }
-            .scaleEffect(centerPressed ? 0.98 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: centerPressed)
+            // Center button - clean, no shadow
+            Circle()
+                .fill(viewModel.selectedColor.centerButtonColor)
+                .frame(width: centerButtonSize, height: centerButtonSize)
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+                )
+                .scaleEffect(centerPressed ? 0.98 : 1.0)
+                .animation(.easeInOut(duration: 0.1), value: centerPressed)
 
             // Unified gesture handler for the whole wheel
             WheelGestureView(
@@ -113,7 +79,6 @@ struct ClickWheelView: View {
             Text("MENU")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundColor(textColor)
-                .shadow(color: Color.black.opacity(0.3), radius: 0.5, x: 0, y: 0.5)
                 .opacity(pressedZone == .menu ? 0.5 : 1.0)
                 .offset(y: -labelOffset)
 
@@ -121,7 +86,6 @@ struct ClickWheelView: View {
             Image(systemName: "forward.end.fill")
                 .font(.system(size: 14))
                 .foregroundColor(textColor)
-                .shadow(color: Color.black.opacity(0.3), radius: 0.5, x: 0, y: 0.5)
                 .opacity(pressedZone == .forward ? 0.5 : 1.0)
                 .offset(x: labelOffset)
 
@@ -129,7 +93,6 @@ struct ClickWheelView: View {
             Image(systemName: "backward.end.fill")
                 .font(.system(size: 14))
                 .foregroundColor(textColor)
-                .shadow(color: Color.black.opacity(0.3), radius: 0.5, x: 0, y: 0.5)
                 .opacity(pressedZone == .back ? 0.5 : 1.0)
                 .offset(x: -labelOffset)
 
@@ -137,7 +100,6 @@ struct ClickWheelView: View {
             Image(systemName: "playpause.fill")
                 .font(.system(size: 16))
                 .foregroundColor(textColor)
-                .shadow(color: Color.black.opacity(0.3), radius: 0.5, x: 0, y: 0.5)
                 .opacity(pressedZone == .playPause ? 0.5 : 1.0)
                 .offset(y: labelOffset)
         }
