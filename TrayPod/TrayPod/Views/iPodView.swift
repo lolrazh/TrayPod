@@ -3,31 +3,31 @@ import SwiftUI
 struct iPodView: View {
     @StateObject private var viewModel = iPodViewModel()
 
-    // Authentic iPod Classic corner radius
-    private let cornerRadius: CGFloat = 24
+    // iPod 5G corner radius (slightly rounded)
+    private let cornerRadius: CGFloat = 20
 
     var body: some View {
         ZStack {
-            // iPod body
+            // iPod 5G body - glossy polycarbonate
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(viewModel.selectedColor.bodyColor)
-                .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 6)
 
-            // Edge highlight stroke (light top-left, shadow bottom-right)
+            // Edge highlight - subtle plastic edge reflection
             RoundedRectangle(cornerRadius: cornerRadius)
                 .stroke(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.25),
-                            Color.white.opacity(0.1),
+                            Color.white.opacity(0.4),
+                            Color.white.opacity(0.15),
                             Color.clear,
-                            Color.black.opacity(0.1),
-                            Color.black.opacity(0.15)
+                            Color.black.opacity(0.05),
+                            Color.black.opacity(0.1)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    lineWidth: 1.5
+                    lineWidth: 1
                 )
 
             VStack(spacing: 20) {
@@ -37,23 +37,27 @@ struct iPodView: View {
 
                 Spacer()
 
-                // Click wheel
+                // Click wheel - flush with body
                 ClickWheelView(viewModel: viewModel)
                     .padding(.bottom, 30)
             }
             .padding(.horizontal, 20)
 
-            // Subtle highlight on top edge (glossy effect)
+            // iPod 5G glossy polycarbonate reflection - prominent top highlight
             VStack {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(
                         LinearGradient(
-                            colors: [.white.opacity(0.3), .clear],
+                            colors: [
+                                .white.opacity(0.5),  // Strong top highlight
+                                .white.opacity(0.2),
+                                .clear
+                            ],
                             startPoint: .top,
                             endPoint: .center
                         )
                     )
-                    .frame(height: 80)
+                    .frame(height: 120)
                 Spacer()
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))

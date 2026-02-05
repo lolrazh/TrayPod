@@ -3,9 +3,10 @@ import SwiftUI
 struct ScreenView: View {
     @ObservedObject var viewModel: iPodViewModel
 
-    // Classic iPod LCD colors - authentic gray-green backlit
-    private let screenBackgroundColor = Color(red: 0.73, green: 0.80, blue: 0.71)
-    private let screenTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
+    // iPod 5G (Video) - white background LCD
+    private let screenBackgroundColor = Color.white
+    private let screenTextColor = Color.black
+    private let titleBarColor = Color(red: 0.85, green: 0.85, blue: 0.85) // Gray title bar
 
     var body: some View {
         ZStack {
@@ -30,64 +31,44 @@ struct ScreenView: View {
                     lineWidth: 1
                 )
 
-            // LCD screen with layered effects
+            // LCD screen - clean white for iPod 5G (no scanlines, no backlight bloom)
             ZStack {
-                // Base LCD color
+                // Base LCD color - pure white
                 RoundedRectangle(cornerRadius: 5)
                     .fill(screenBackgroundColor)
 
-                // Backlight bloom - subtle radial gradient from center
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                Color.white.opacity(0.08),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 120
-                        )
-                    )
-
-                // Inner shadow - recessed glass effect (darker top edge)
+                // Subtle inner shadow for recessed glass effect
                 RoundedRectangle(cornerRadius: 5)
                     .stroke(
                         LinearGradient(
                             colors: [
-                                Color.black.opacity(0.2),
+                                Color.black.opacity(0.15),
                                 Color.clear,
                                 Color.clear,
-                                Color.white.opacity(0.1)
+                                Color.white.opacity(0.05)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
                         ),
-                        lineWidth: 1.5
+                        lineWidth: 1
                     )
-
-                // Scanline overlay
-                ScanlineOverlay()
-                    .clipShape(RoundedRectangle(cornerRadius: 5))
             }
             .padding(6)
 
             // Screen content
             VStack(spacing: 0) {
-                // Title bar
+                // Title bar - gray background like iPod 5G
                 titleBar
-                    .padding(.horizontal, 10)
-                    .padding(.top, 10)
-
-                Divider()
-                    .background(screenTextColor.opacity(0.3))
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(titleBarColor)
 
                 // Content area
                 screenContent
-                    .padding(10)
+                    .padding(8)
             }
             .padding(6)
+            .clipShape(RoundedRectangle(cornerRadius: 5))
         }
         .frame(height: 180)
     }
@@ -165,7 +146,7 @@ struct ScreenView: View {
 struct MenuListView: View {
     @ObservedObject var viewModel: iPodViewModel
 
-    private let screenTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
+    private let screenTextColor = Color.black
     // Authentic iPod highlight gradient: #73C9FF → #006DB0
     private let highlightGradient = LinearGradient(
         colors: [
@@ -196,17 +177,13 @@ struct MenuListView: View {
 
     private func menuRow(item: MenuItem, isSelected: Bool) -> some View {
         HStack {
-            if let icon = item.icon {
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .frame(width: 16)
-            }
-
+            // iPod 5G: Text-only menus, no icons
             Text(item.title)
                 .font(.system(size: 13, weight: .medium))
 
             Spacer()
 
+            // Chevron for navigation items
             if case .navigate = item.action {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10, weight: .bold))
@@ -223,7 +200,8 @@ struct NowPlayingView: View {
     @ObservedObject var viewModel: iPodViewModel
     @ObservedObject var playerViewModel: PlayerViewModel
 
-    private let screenTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
+    private let screenTextColor = Color.black
+    private let artworkSize: CGFloat = 80 // Prominent album art
 
     private var playerState: PlayerState {
         playerViewModel.state
@@ -234,57 +212,63 @@ struct NowPlayingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
-            // Play state indicator and volume
-            HStack {
-                // Play/Pause indicator
-                Image(systemName: playerState.isPlaying ? "play.fill" : "pause.fill")
-                    .font(.system(size: 8))
-                    .foregroundColor(screenTextColor)
-
-                Spacer()
-
-                // Volume indicator
-                HStack(spacing: 1) {
-                    Image(systemName: "speaker.fill")
-                        .font(.system(size: 7))
-                    volumeBar
-                }
-                .foregroundColor(screenTextColor)
-            }
-            .frame(height: 12)
-
+        VStack(spacing: 4) {
             if let track = track {
-                // Track info
-                VStack(spacing: 2) {
-                    Text(track.title)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(screenTextColor)
-                        .lineLimit(1)
+                // iPod 5G Now Playing Layout
+                HStack(alignment: .top, spacing: 10) {
+                    // Album artwork (left side, prominent)
+                    albumArtwork(for: track)
 
-                    Text(track.artist)
-                        .font(.system(size: 10))
-                        .foregroundColor(screenTextColor.opacity(0.7))
-                        .lineLimit(1)
+                    // Track info (right side)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(track.title)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(screenTextColor)
+                            .lineLimit(2)
 
-                    Text(track.album)
-                        .font(.system(size: 9))
+                        Text(track.artist)
+                            .font(.system(size: 10))
+                            .foregroundColor(screenTextColor.opacity(0.8))
+                            .lineLimit(1)
+
+                        Text(track.album)
+                            .font(.system(size: 9))
+                            .foregroundColor(screenTextColor.opacity(0.6))
+                            .lineLimit(1)
+
+                        Spacer()
+
+                        // Play state indicator
+                        HStack(spacing: 4) {
+                            Image(systemName: playerState.isPlaying ? "play.fill" : "pause.fill")
+                                .font(.system(size: 8))
+                            Text(playerState.isPlaying ? "Playing" : "Paused")
+                                .font(.system(size: 8))
+                        }
                         .foregroundColor(screenTextColor.opacity(0.5))
-                        .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .frame(height: artworkSize)
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                // Progress bar
+                // Progress bar with diamond scrubber
                 progressBar
             } else {
                 // No track playing
                 Spacer()
 
-                VStack(spacing: 4) {
-                    Image(systemName: "music.note")
-                        .font(.system(size: 24))
-                        .foregroundColor(screenTextColor.opacity(0.3))
+                VStack(spacing: 6) {
+                    // Placeholder album art
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Image(systemName: "music.note")
+                                .font(.system(size: 24))
+                                .foregroundColor(screenTextColor.opacity(0.3))
+                        )
 
                     Text(playerViewModel.activeServiceName)
                         .font(.system(size: 11, weight: .medium))
@@ -302,14 +286,43 @@ struct NowPlayingView: View {
         }
     }
 
-    private var volumeBar: some View {
-        HStack(spacing: 1) {
-            ForEach(0..<8) { i in
-                Rectangle()
-                    .fill(screenTextColor.opacity(Float(i) / 8.0 < playerState.volume ? 1.0 : 0.2))
-                    .frame(width: 3, height: 6)
+    @ViewBuilder
+    private func albumArtwork(for track: Track) -> some View {
+        if let artworkURL = track.artworkURL {
+            AsyncImage(url: artworkURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure:
+                    placeholderArtwork
+                case .empty:
+                    placeholderArtwork
+                        .overlay(
+                            ProgressView()
+                                .scaleEffect(0.5)
+                        )
+                @unknown default:
+                    placeholderArtwork
+                }
             }
+            .frame(width: artworkSize, height: artworkSize)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else {
+            placeholderArtwork
         }
+    }
+
+    private var placeholderArtwork: some View {
+        RoundedRectangle(cornerRadius: 4)
+            .fill(Color.gray.opacity(0.2))
+            .frame(width: artworkSize, height: artworkSize)
+            .overlay(
+                Image(systemName: "music.note")
+                    .font(.system(size: 28))
+                    .foregroundColor(screenTextColor.opacity(0.3))
+            )
     }
 
     // Authentic iPod progress bar gradient: #8BD3FF → #008EE6
@@ -325,25 +338,23 @@ struct NowPlayingView: View {
     private var progressBar: some View {
         GeometryReader { geo in
             VStack(spacing: 2) {
-                // Progress track
+                // Progress track with diamond scrubber
                 ZStack(alignment: .leading) {
                     // Background track
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(screenTextColor.opacity(0.2))
-                        .frame(height: 6)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(screenTextColor.opacity(0.15))
+                        .frame(height: 4)
 
                     // Filled progress with gradient
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 2)
                         .fill(progressGradient)
-                        .frame(width: max(0, geo.size.width * playerState.progress), height: 6)
+                        .frame(width: max(0, geo.size.width * playerState.progress), height: 4)
 
-                    // Diamond playhead indicator
-                    if playerState.progress > 0 {
-                        DiamondShape()
-                            .fill(screenTextColor)
-                            .frame(width: 8, height: 8)
-                            .offset(x: geo.size.width * playerState.progress - 4)
-                    }
+                    // Diamond playhead indicator (iPod 5G signature)
+                    DiamondShape()
+                        .fill(screenTextColor)
+                        .frame(width: 8, height: 8)
+                        .offset(x: max(0, min(geo.size.width - 8, geo.size.width * playerState.progress - 4)))
                 }
 
                 // Time labels
@@ -354,10 +365,10 @@ struct NowPlayingView: View {
                     Text("-" + Track.formatTime(playerState.remainingTime))
                         .font(.system(size: 8, design: .monospaced))
                 }
-                .foregroundColor(screenTextColor.opacity(0.6))
+                .foregroundColor(screenTextColor.opacity(0.5))
             }
         }
-        .frame(height: 22)
+        .frame(height: 20)
     }
 }
 
@@ -383,7 +394,7 @@ struct DiamondShape: Shape {
 struct ColorSelectionView: View {
     @ObservedObject var viewModel: iPodViewModel
 
-    private let screenTextColor = Color(red: 0.1, green: 0.1, blue: 0.1)
+    private let screenTextColor = Color.black
     // Authentic iPod highlight gradient: #73C9FF → #006DB0
     private let highlightGradient = LinearGradient(
         colors: [
@@ -443,27 +454,6 @@ struct ColorSelectionView: View {
         .padding(.vertical, 4)
         .background(isHighlighted ? highlightGradient : LinearGradient(colors: [Color.clear], startPoint: .top, endPoint: .bottom))
         .foregroundColor(isHighlighted ? .white : screenTextColor)
-    }
-}
-
-// MARK: - Scanline Overlay
-
-struct ScanlineOverlay: View {
-    var body: some View {
-        Canvas { context, size in
-            // Draw horizontal scanlines at 12% opacity
-            let lineSpacing: CGFloat = 2.0
-            var y: CGFloat = 0
-
-            while y < size.height {
-                let rect = CGRect(x: 0, y: y, width: size.width, height: 1)
-                context.fill(
-                    Path(rect),
-                    with: .color(Color.black.opacity(0.12))
-                )
-                y += lineSpacing
-            }
-        }
     }
 }
 

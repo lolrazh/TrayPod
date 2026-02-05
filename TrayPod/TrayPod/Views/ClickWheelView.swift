@@ -16,71 +16,37 @@ struct ClickWheelView: View {
 
     var body: some View {
         ZStack {
-            // Outer wheel - minimal shadow since it's nearly flush with body
+            // iPod 5G: Completely flush wheel, no shadow, no grooves
+            Circle()
+                .fill(viewModel.selectedColor.wheelColor)
+                .frame(width: wheelSize, height: wheelSize)
+
+            // Subtle plastic texture for wheel surface (very subtle)
             Circle()
                 .fill(
                     RadialGradient(
                         colors: [
-                            viewModel.selectedColor.wheelColor.opacity(1.05),
-                            viewModel.selectedColor.wheelColor
+                            Color.white.opacity(0.03),
+                            Color.clear
                         ],
-                        center: .center,
+                        center: .topLeading,
                         startRadius: 0,
-                        endRadius: wheelSize / 2
+                        endRadius: wheelSize * 0.7
                     )
                 )
                 .frame(width: wheelSize, height: wheelSize)
-                .shadow(color: .black.opacity(0.08), radius: 2, x: 0, y: 1)
-
-            // Brushed metal texture for silver/white variants
-            if viewModel.selectedColor.hasBrushedMetalWheel {
-                Circle()
-                    .fill(
-                        AngularGradient(
-                            colors: [
-                                Color.white.opacity(0.12),
-                                Color.gray.opacity(0.04),
-                                Color.white.opacity(0.10),
-                                Color.gray.opacity(0.06),
-                                Color.white.opacity(0.12)
-                            ],
-                            center: .center
-                        )
-                    )
-                    .frame(width: wheelSize, height: wheelSize)
-            }
-
-            // Concentric groove rings - start right outside center button
-            ForEach(0..<5, id: \.self) { i in
-                let grooveRadius = centerButtonSize / 2 + 8 + CGFloat(i) * 14
-                Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.black.opacity(0.04),
-                                Color.white.opacity(0.03)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 0.5
-                    )
-                    .frame(width: grooveRadius * 2, height: grooveRadius * 2)
-            }
 
             // Click zone labels with press states
             clickZoneLabels
 
-            // Subtle hairline gap between center and wheel (just visual separation)
-            Circle()
-                .stroke(Color.black.opacity(0.12), lineWidth: 1)
-                .frame(width: centerButtonSize + 2, height: centerButtonSize + 2)
-
-            // Center button with minimal press effect
+            // Center button - flush with wheel, hairline seam only
             Circle()
                 .fill(viewModel.selectedColor.centerButtonColor)
                 .frame(width: centerButtonSize, height: centerButtonSize)
-                .shadow(color: .black.opacity(centerPressed ? 0.02 : 0.06), radius: centerPressed ? 0.5 : 1, x: 0, y: centerPressed ? 0 : 0.5)
+                .overlay(
+                    Circle()
+                        .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+                )
                 .scaleEffect(centerPressed ? 0.98 : 1.0)
                 .animation(.easeInOut(duration: 0.1), value: centerPressed)
 

@@ -110,11 +110,14 @@ class SpotifyService: MusicServiceProtocol {
 
         // Update track if we have a name
         if let name = trackName, !name.isEmpty {
+            // Fetch artwork URL asynchronously (notifications don't include it)
+            let artworkURL = fetchArtworkURL()
             _currentTrack = Track(
                 title: name,
                 artist: artist ?? "",
                 album: album ?? "",
-                duration: _duration
+                duration: _duration,
+                artworkURL: artworkURL
             )
         } else if playerState == "Stopped" {
             _currentTrack = nil
@@ -160,11 +163,13 @@ class SpotifyService: MusicServiceProtocol {
         _playbackPosition = Double(components[5]) ?? 0
 
         if !trackName.isEmpty {
+            let artworkURL = fetchArtworkURL()
             _currentTrack = Track(
                 title: trackName,
                 artist: artist,
                 album: album,
-                duration: _duration
+                duration: _duration,
+                artworkURL: artworkURL
             )
         }
 
@@ -173,6 +178,20 @@ class SpotifyService: MusicServiceProtocol {
 
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)
+    }
+
+    // MARK: - Artwork
+
+    /// Fetch artwork URL via AppleScript
+    private func fetchArtworkURL() -> URL? {
+        guard isRunning else { return nil }
+        let script = """
+            tell application "Spotify"
+                return artwork url of current track
+            end tell
+        """
+        guard let urlString = executeAppleScript(script), !urlString.isEmpty else { return nil }
+        return URL(string: urlString)
     }
 
     // MARK: - Playback Controls (AppleScript)

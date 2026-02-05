@@ -38,22 +38,28 @@ class iPodViewModel: ObservableObject {
     // Volume control on Now Playing
     private let volumeStep: Float = 0.05
 
-    // MARK: - Menu Items
+    // MARK: - Menu Items (iPod 5G style - text only, no icons)
 
     var mainMenuItems: [MenuItem] {
         [
-            MenuItem(title: "Now Playing", icon: "play.fill", action: .navigate(.nowPlaying)),
-            MenuItem(title: "Settings", icon: "gearshape.fill", action: .navigate(.settings))
+            MenuItem(title: "Music", action: .navigate(.nowPlaying)),
+            MenuItem(title: "Photos", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Videos", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Extras", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Settings", action: .navigate(.settings)),
+            MenuItem(title: "Shuffle Songs", action: .custom { [weak self] in
+                self?.playerViewModel.togglePlayPause()  // Just play for now
+            })
         ]
     }
 
     var settingsMenuItems: [MenuItem] {
         [
-            MenuItem(title: "Color", icon: "paintpalette.fill", action: .navigate(.colorSelection)),
-            MenuItem(title: "Sounds: \(soundEnabled ? "On" : "Off")", icon: "speaker.wave.2.fill", action: .custom { [weak self] in
+            MenuItem(title: "Color", action: .navigate(.colorSelection)),
+            MenuItem(title: "Sounds: \(soundEnabled ? "On" : "Off")", action: .custom { [weak self] in
                 self?.soundEnabled.toggle()
             }),
-            MenuItem(title: "Haptics: \(hapticEnabled ? "On" : "Off")", icon: "hand.tap.fill", action: .custom { [weak self] in
+            MenuItem(title: "Haptics: \(hapticEnabled ? "On" : "Off")", action: .custom { [weak self] in
                 self?.hapticEnabled.toggle()
             })
         ]
@@ -154,6 +160,9 @@ class iPodViewModel: ObservableObject {
                 playerViewModel.togglePlayPause()
             case .custom(let action):
                 action()
+            case .none:
+                // Placeholder item - do nothing
+                break
             }
 
         case .colorSelection:
