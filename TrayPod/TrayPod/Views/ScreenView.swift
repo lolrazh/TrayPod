@@ -59,22 +59,29 @@ struct ScreenView: View {
                     .frame(height: titleBarHeight)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 6)
-                    .background(titleBarGradient)
-                    .overlay(alignment: .top) {
-                        // Cool white highlight at top (Aqua style shine)
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.85),
-                                        Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.4),
-                                        Color.clear
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .frame(height: 10)
+                    .background {
+                        // All decorative layers BEHIND the content
+                        ZStack {
+                            titleBarGradient
+
+                            // Cool white highlight at top (Aqua style shine)
+                            VStack(spacing: 0) {
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.85),
+                                                Color(red: 0.95, green: 0.97, blue: 1.0).opacity(0.4),
+                                                Color.clear
+                                            ],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(height: 10)
+                                Spacer(minLength: 0)
+                            }
+                        }
                     }
                     .overlay(alignment: .bottom) {
                         // Subtle cool shadow at bottom
@@ -159,98 +166,24 @@ struct ScreenView: View {
         let batteryHeight: CGFloat = 7
 
         return HStack(spacing: 0) {
-            // Battery body — glass tube with green fill
-            ZStack {
-                // Layer 1: Green fill
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(
-                        LinearGradient(
-                            stops: [
-                                .init(color: Color(red: 0.18, green: 0.62, blue: 0.18), location: 0.0),
-                                .init(color: Color(red: 0.28, green: 0.74, blue: 0.28), location: 0.52),
-                                .init(color: Color(red: 0.42, green: 0.82, blue: 0.42), location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-
-                // Layer 2: Glass tube overlay
-                ZStack {
-                    // Top gloss
-                    VStack(spacing: 0) {
-                        LinearGradient(
-                            stops: [
-                                .init(color: .white.opacity(0.55), location: 0.0),
-                                .init(color: .white.opacity(0.18), location: 0.6),
-                                .init(color: .clear, location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .frame(height: batteryHeight * 0.45)
-                        Spacer(minLength: 0)
-                    }
-
-                    // Top rim shadow (over gloss)
-                    VStack(spacing: 0) {
-                        LinearGradient(
-                            stops: [
-                                .init(color: .black.opacity(0.30), location: 0.0),
-                                .init(color: .black.opacity(0.10), location: 0.4),
-                                .init(color: .clear, location: 1.0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .frame(height: batteryHeight * 0.28)
-                        .blur(radius: 0.3)
-                        Spacer(minLength: 0)
-                    }
-
-                    // Equator shadow
+            // Battery body — simple dark-to-light gradient
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(
                     LinearGradient(
-                        stops: [
-                            .init(color: .clear, location: 0.0),
-                            .init(color: .clear, location: 0.36),
-                            .init(color: .black.opacity(0.16), location: 0.54),
-                            .init(color: .clear, location: 0.72),
-                            .init(color: .clear, location: 1.0)
+                        colors: [
+                            Color(red: 0.04, green: 0.18, blue: 0.04),  // Very dark green
+                            Color(red: 0.55, green: 0.92, blue: 0.50)   // Bright light green
                         ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        startPoint: .bottom,
+                        endPoint: .top
                     )
-                    .blur(radius: 0.3)
-
-                    // Top bright edge
-                    VStack(spacing: 0) {
-                        Color.white.opacity(0.35)
-                            .frame(height: 0.5)
-                        Spacer(minLength: 0)
-                    }
-
-                    // Bottom dark edge
-                    VStack(spacing: 0) {
-                        Spacer(minLength: 0)
-                        Color.black.opacity(0.08)
-                            .frame(height: 0.5)
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 1.5))
-            }
-            .frame(width: batteryWidth, height: batteryHeight)
-            .overlay(
-                RoundedRectangle(cornerRadius: 1.5)
-                    .stroke(
-                        LinearGradient(
-                            colors: [Color.white.opacity(0.7), Color.black.opacity(0.18)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ),
-                        lineWidth: 0.5
-                    )
-            )
-            .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
+                )
+                .frame(width: batteryWidth, height: batteryHeight)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .stroke(Color(red: 0.30, green: 0.32, blue: 0.36), lineWidth: 0.75)
+                )
+                .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
