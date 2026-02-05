@@ -7,19 +7,29 @@ struct ScreenView: View {
     private let screenBackgroundColor = Color.white
     private let screenTextColor = Color.black
 
-    // iPod 5G title bar - gray with 3D depth effect
+    // iPod 5G title bar - brushed metal style gradient
     private let titleBarGradient = LinearGradient(
         colors: [
-            Color(red: 0.88, green: 0.88, blue: 0.88),  // Lighter at very top
-            Color(red: 0.82, green: 0.82, blue: 0.82),  // Mid gray
-            Color(red: 0.75, green: 0.75, blue: 0.75)   // Darker toward bottom
+            Color(red: 0.92, green: 0.92, blue: 0.93),  // Bright highlight at top
+            Color(red: 0.84, green: 0.84, blue: 0.85),  // Mid
+            Color(red: 0.78, green: 0.78, blue: 0.79)   // Darker at bottom
         ],
         startPoint: .top,
         endPoint: .bottom
     )
 
-    // iPod 5G battery green
-    private let batteryGreen = Color(red: 0.30, green: 0.75, blue: 0.30)
+    // iPod 5G battery green - vibrant like the real thing
+    private let batteryGreen = Color(red: 0.20, green: 0.78, blue: 0.20)
+
+    // Aqua-style blue for play button
+    private let aquaBlue = LinearGradient(
+        colors: [
+            Color(red: 0.40, green: 0.70, blue: 0.98),  // Lighter top
+            Color(red: 0.20, green: 0.50, blue: 0.90)   // Darker bottom
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
 
     // Fixed screen dimensions - NEVER changes
     private let screenWidth: CGFloat = 310
@@ -41,33 +51,37 @@ struct ScreenView: View {
 
             // Content container with fixed layout
             VStack(spacing: 0) {
-                // Title bar - iPod 5G style with 3D shadow effect
+                // Title bar - iPod 5G style with prominent 3D shadow effect
                 titleBar
                     .frame(height: titleBarHeight)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 6)
                     .background(titleBarGradient)
                     .overlay(alignment: .top) {
-                        // Lighter shadow at top (more spread)
+                        // PROMINENT white highlight at top (Aqua style shine)
                         Rectangle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.white.opacity(0.5), Color.clear],
+                                    colors: [
+                                        Color.white.opacity(0.85),
+                                        Color.white.opacity(0.4),
+                                        Color.clear
+                                    ],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
                             )
-                            .frame(height: 8)
+                            .frame(height: 12)
                     }
                     .overlay(alignment: .bottom) {
-                        // Intense shadow at bottom (low spread)
+                        // Intense crisp shadow at bottom (low spread, high contrast)
                         VStack(spacing: 0) {
                             Rectangle()
-                                .fill(Color.black.opacity(0.25))
+                                .fill(Color.black.opacity(0.35))
                                 .frame(height: 1)
                             Rectangle()
-                                .fill(Color.black.opacity(0.08))
-                                .frame(height: 2)
+                                .fill(Color.black.opacity(0.12))
+                                .frame(height: 1)
                         }
                     }
 
@@ -88,9 +102,9 @@ struct ScreenView: View {
 
     private var titleBar: some View {
         ZStack {
-            // Centered title
+            // Centered title - BIGGER and more prominent
             Text(screenTitle)
-                .font(.system(size: 12, weight: .bold))
+                .font(.system(size: 13, weight: .bold))
                 .foregroundColor(screenTextColor)
 
             // Battery on the right
@@ -115,28 +129,52 @@ struct ScreenView: View {
     }
 
     private var batteryIndicator: some View {
-        HStack(spacing: 1) {
-            // Battery body
-            RoundedRectangle(cornerRadius: 2)
-                .stroke(screenTextColor, lineWidth: 1)
-                .frame(width: 22, height: 10)
-                .overlay(
-                    // Green fill bars
-                    HStack(spacing: 1) {
-                        ForEach(0..<4, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 1)
-                                .fill(batteryGreen)
-                                .frame(width: 4, height: 6)
-                        }
-                    }
-                    .padding(.horizontal, 2)
-                    , alignment: .leading
-                )
+        HStack(spacing: 0) {
+            // Battery body with glossy green fill
+            ZStack {
+                // Outer border
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(screenTextColor.opacity(0.8), lineWidth: 1)
+                    .frame(width: 20, height: 9)
 
-            // Battery tip
-            RoundedRectangle(cornerRadius: 1)
-                .fill(screenTextColor)
-                .frame(width: 2, height: 5)
+                // Continuous green fill with glossy gradient
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.45, green: 0.95, blue: 0.45),  // Bright highlight
+                                Color(red: 0.25, green: 0.80, blue: 0.25),  // Mid green
+                                Color(red: 0.15, green: 0.65, blue: 0.15)   // Darker base
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 16, height: 5)
+                    .overlay(
+                        // Glossy shine highlight
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.6),
+                                        Color.white.opacity(0.0)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .center
+                                )
+                            )
+                            .frame(height: 2)
+                            .offset(y: -1)
+                        , alignment: .top
+                    )
+            }
+
+            // Battery tip/nub
+            RoundedRectangle(cornerRadius: 0.5)
+                .fill(screenTextColor.opacity(0.8))
+                .frame(width: 2, height: 4)
+                .offset(x: 1)
         }
     }
 
@@ -233,6 +271,17 @@ struct NowPlayingView: View {
     private let screenTextColor = Color.black
     private let artworkSize: CGFloat = 70 // Album art size
 
+    // Aqua-style blue gradient for play button
+    private let playButtonGradient = LinearGradient(
+        colors: [
+            Color(red: 0.45, green: 0.75, blue: 1.0),   // Bright top
+            Color(red: 0.25, green: 0.55, blue: 0.95),  // Mid
+            Color(red: 0.15, green: 0.45, blue: 0.85)   // Darker bottom
+        ],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
     private var playerState: PlayerState {
         playerViewModel.state
     }
@@ -244,13 +293,64 @@ struct NowPlayingView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let track = track {
-                // Track position "1 of 14" - top left
-                Text("1 of 1")
-                    .font(.system(size: 10))
-                    .foregroundColor(screenTextColor.opacity(0.7))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 6)
-                    .padding(.top, 4)
+                // Top row: Play button (left) and track position (right)
+                HStack {
+                    // Aqua-style play/pause button with inner shadow
+                    Button(action: { playerViewModel.togglePlayPause() }) {
+                        ZStack {
+                            // Button background with gradient
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(playButtonGradient)
+                                .frame(width: 18, height: 14)
+
+                            // Inner shadow effect (top darker, bottom lighter)
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.black.opacity(0.3),
+                                            Color.clear,
+                                            Color.white.opacity(0.3)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    ),
+                                    lineWidth: 1
+                                )
+                                .frame(width: 18, height: 14)
+
+                            // Glossy highlight at top
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.5),
+                                            Color.clear
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .center
+                                    )
+                                )
+                                .frame(width: 14, height: 6)
+                                .offset(y: -2)
+
+                            // Play/Pause icon
+                            Image(systemName: playerState.isPlaying ? "pause.fill" : "play.fill")
+                                .font(.system(size: 7, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    // Track position "1 of 14"
+                    Text("1 of 1")
+                        .font(.system(size: 10))
+                        .foregroundColor(screenTextColor.opacity(0.6))
+                }
+                .padding(.horizontal, 6)
+                .padding(.top, 4)
 
                 // Main content: Album art LEFT, details RIGHT
                 HStack(alignment: .top, spacing: 10) {
