@@ -96,6 +96,64 @@ open ~/Library/Developer/Xcode/DerivedData/TrayPod-*/Build/Products/Debug/TrayPo
 - AppleScript requires user permission on first use
 - No album artwork yet (Spotify API would be needed)
 - No seek functionality yet (wheel could scrub progress bar)
+- Spotify sync is polling-based (should use DistributedNotificationCenter)
+
+---
+
+## Design Principles & Learnings
+
+### Haptic Feedback on macOS
+
+**Key insight:** macOS trackpad haptics via `NSHapticFeedbackManager` are subtle. To make them feel substantial:
+
+1. **Use `.levelChange` not `.generic`** - designed for discrete stepping (like iPod wheel ticks)
+2. **Double-tap pattern** - fire 2 haptics 15-20ms apart; they blur into one "thicker" click
+3. **Sync with UI** - one haptic per selection change, not continuous on scroll
+4. **Timing matters** - haptics must fire within 10-20ms of visual change to feel responsive
+
+**Available patterns:**
+| Pattern | Use Case |
+|---------|----------|
+| `.alignment` | Snapping, dragging items |
+| `.levelChange` | Discrete value steps (sliders, pickers, wheels) |
+| `.generic` | General fallback |
+
+**What doesn't work on Apple Silicon:**
+- Private `MultitouchSupport.framework` APIs (MTActuatorCreateFromDeviceID fails)
+- CoreHaptics reports `supportsHaptics: false` on MacBooks (it's for iOS Taptic Engine)
+
+### Spotify Integration on macOS
+
+**Don't poll AppleScript** - it's laggy (200-500ms) and CPU-intensive.
+
+**Use `DistributedNotificationCenter` instead:**
+```swift
+DistributedNotificationCenter.default().addObserver(
+    self,
+    selector: #selector(handlePlaybackChange),
+    name: NSNotification.Name("com.spotify.client.PlaybackStateChanged"),
+    object: nil
+)
+```
+
+**Notification userInfo keys:**
+- `Player State` → "Playing", "Paused", "Stopped"
+- `Name` → Track title
+- `Artist`, `Album` → Metadata
+- `Duration` → Milliseconds
+- `Playback Position` → Seconds
+
+**Architecture pattern:**
+- Notifications for state changes (instant)
+- Local timer for position interpolation (no AppleScript)
+- AppleScript only for commands (play, pause, next, volume)
+
+### NSView Coordinate System
+- Y increases **upward** (opposite of iOS)
+- `location.y > center.y` means **above** center
+- Easy to get button zones wrong if you forget this
+
+---
 
 ## Verification Checklist
 1. App appears in menu bar (music note icon)
