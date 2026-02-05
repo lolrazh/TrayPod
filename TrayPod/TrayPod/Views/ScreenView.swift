@@ -192,7 +192,6 @@ struct ScreenView: View {
                 removal: .move(edge: viewModel.transitionDirection == .trailing ? .leading : .trailing)
             )
         )
-        .animation(.easeInOut(duration: 0.25), value: viewModel.currentScreen)
         .id(viewModel.currentScreen)
     }
 }
@@ -403,10 +402,12 @@ struct NowPlayingView: View {
                 // Volume bar slides in from right
                 volumeBar
                     .transition(iPodTransition.barSwap(showingVolume: true))
+                    .id("volumeBar")
             } else {
                 // Progress bar slides in from left
                 progressBar
                     .transition(iPodTransition.barSwap(showingVolume: false))
+                    .id("progressBar")
             }
         }
         .animation(iPodAnimation.standard, value: playerViewModel.isAdjustingVolume)
@@ -440,25 +441,6 @@ struct NowPlayingView: View {
 
 // MARK: - Custom Shapes
 
-/// Screen shape with only bottom corners rounded (top is sharp for title bar)
-struct BottomRoundedRectangle: Shape {
-    var radius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
-        path.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.maxY - radius),
-                    radius: radius, startAngle: .zero, endAngle: .degrees(90), clockwise: false)
-        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
-        path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.maxY - radius),
-                    radius: radius, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
-        path.closeSubpath()
-        return path
-    }
-}
-
 /// Shape with only top corners rounded (for title bar)
 struct TopRoundedRectangle: Shape {
     var radius: CGFloat
@@ -481,23 +463,6 @@ struct TopRoundedRectangle: Shape {
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         // Close path
         path.closeSubpath()
-        return path
-    }
-}
-
-struct DiamondShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let halfWidth = rect.width / 2
-        let halfHeight = rect.height / 2
-
-        path.move(to: CGPoint(x: center.x, y: center.y - halfHeight))
-        path.addLine(to: CGPoint(x: center.x + halfWidth, y: center.y))
-        path.addLine(to: CGPoint(x: center.x, y: center.y + halfHeight))
-        path.addLine(to: CGPoint(x: center.x - halfWidth, y: center.y))
-        path.closeSubpath()
-
         return path
     }
 }

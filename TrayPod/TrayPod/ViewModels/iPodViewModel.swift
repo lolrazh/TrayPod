@@ -210,28 +210,26 @@ class iPodViewModel: ObservableObject {
     private func navigateTo(_ screen: MenuScreen) {
         navigationStack.append(currentScreen)
         transitionDirection = .trailing // Push right when navigating forward
-        withAnimation(.easeInOut(duration: 0.25)) {
-            currentScreen = screen
+
+        let newIndex: Int
+        if screen == .colorSelection,
+           let colorIndex = iPodColor.allCases.firstIndex(of: selectedColor) {
+            newIndex = colorIndex
+        } else {
+            newIndex = 0
         }
 
-        // Set initial selection for color screen
-        if screen == .colorSelection {
-            if let currentColorIndex = iPodColor.allCases.firstIndex(of: selectedColor) {
-                selectedIndex = currentColorIndex
-            } else {
-                selectedIndex = 0
-            }
-        } else {
-            selectedIndex = 0
+        withAnimation(iPodAnimation.standard) {
+            currentScreen = screen
+            selectedIndex = newIndex
         }
     }
 
     func goBack() {
-        if let previousScreen = navigationStack.popLast() {
-            transitionDirection = .leading // Push left when going back
-            withAnimation(.easeInOut(duration: 0.25)) {
-                currentScreen = previousScreen
-            }
+        guard let previousScreen = navigationStack.popLast() else { return }
+        transitionDirection = .leading // Push left when going back
+        withAnimation(iPodAnimation.standard) {
+            currentScreen = previousScreen
             selectedIndex = 0
         }
     }

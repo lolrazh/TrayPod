@@ -26,11 +26,8 @@ struct iPodTransition {
     /// Menu pop - content slides in from left (going back)
     static let menuPop = AnyTransition.move(edge: .leading)
 
-    /// Progress bar exits left, volume bar enters right
+    /// Volume bar always slides from/to right; progress bar always slides from/to left
     static func barSwap(showingVolume: Bool) -> AnyTransition {
-        .asymmetric(
-            insertion: showingVolume ? .move(edge: .trailing) : .move(edge: .leading),
-            removal: showingVolume ? .move(edge: .leading) : .move(edge: .trailing)
-        )
+        .move(edge: showingVolume ? .trailing : .leading)
     }
 }
