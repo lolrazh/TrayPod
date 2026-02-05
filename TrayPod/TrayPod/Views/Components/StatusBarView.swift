@@ -131,30 +131,32 @@ struct StatusBarView<LeftContent: View, RightContent: View>: View {
             VStack(spacing: 0) {
                 LinearGradient(
                     stops: [
-                        .init(color: .black.opacity(0.18), location: 0.0),
-                        .init(color: .black.opacity(0.07), location: 0.4),
+                        .init(color: .black.opacity(0.36), location: 0.0),
+                        .init(color: .black.opacity(0.14), location: 0.35),
                         .init(color: .clear, location: 1.0)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .frame(height: barHeight * 0.30)
+                .blur(radius: 0.5)
 
                 Spacer(minLength: 0)
             }
 
-            // Equator shadow: subtle darkening at center of cylinder
+            // Equator shadow: darkening at center of cylinder
             LinearGradient(
                 stops: [
                     .init(color: .clear, location: 0.0),
-                    .init(color: .clear, location: 0.40),
-                    .init(color: .black.opacity(0.10), location: 0.54),
-                    .init(color: .clear, location: 0.68),
+                    .init(color: .clear, location: 0.36),
+                    .init(color: .black.opacity(0.20), location: 0.54),
+                    .init(color: .clear, location: 0.72),
                     .init(color: .clear, location: 1.0)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
+            .blur(radius: 0.5)
 
             // Top edge: bright pixel line
             VStack(spacing: 0) {
