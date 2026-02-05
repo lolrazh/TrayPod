@@ -125,10 +125,14 @@ struct ScreenView: View {
                 ColorSelectionView(viewModel: viewModel)
             }
         }
-        .transition(.asymmetric(
-            insertion: .move(edge: viewModel.transitionDirection),
-            removal: .move(edge: viewModel.transitionDirection == .trailing ? .leading : .trailing)
-        ))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(
+            .asymmetric(
+                insertion: .move(edge: viewModel.transitionDirection == .trailing ? .trailing : .leading),
+                removal: .move(edge: viewModel.transitionDirection == .trailing ? .leading : .trailing)
+            )
+        )
+        .animation(.easeInOut(duration: 0.25), value: viewModel.currentScreen)
         .id(viewModel.currentScreen)
     }
 }
@@ -137,11 +141,11 @@ struct MenuListView: View {
     @ObservedObject var viewModel: iPodViewModel
 
     private let screenTextColor = Color.black
-    // Authentic iPod highlight gradient: #73C9FF → #006DB0
+    // iPod 5G blue highlight gradient (Aqua-style)
     private let highlightGradient = LinearGradient(
         colors: [
-            Color(red: 0.45, green: 0.79, blue: 1.0),   // #73C9FF
-            Color(red: 0.0, green: 0.43, blue: 0.69)    // #006DB0
+            Color(red: 0.30, green: 0.67, blue: 0.95),  // Lighter blue top
+            Color(red: 0.0, green: 0.50, blue: 0.85)    // Darker blue bottom
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -324,11 +328,11 @@ struct NowPlayingView: View {
             )
     }
 
-    // Aqua-style progress bar gradient
+    // iPod 5G progress bar gradient (matches highlight)
     private let progressGradient = LinearGradient(
         colors: [
-            Color(red: 0.55, green: 0.83, blue: 1.0),   // Light blue top
-            Color(red: 0.0, green: 0.56, blue: 0.9)    // Darker blue bottom
+            Color(red: 0.30, green: 0.67, blue: 0.95),  // Lighter blue top
+            Color(red: 0.0, green: 0.50, blue: 0.85)    // Darker blue bottom
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -336,42 +340,32 @@ struct NowPlayingView: View {
 
     private var progressBar: some View {
         GeometryReader { geo in
-            VStack(spacing: 1) {
-                // Progress track with diamond scrubber
+            VStack(spacing: 2) {
+                // iPod 5G progress bar - simple thick bar, NO thumb
                 ZStack(alignment: .leading) {
-                    // Background track - Aqua style inset
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 5)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 2)
-                                .stroke(Color.black.opacity(0.1), lineWidth: 0.5)
-                        )
+                    // Background track - gray unfilled portion
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.gray.opacity(0.35))
+                        .frame(height: 7)
 
-                    // Filled progress with gradient
-                    RoundedRectangle(cornerRadius: 2)
+                    // Filled progress with blue gradient
+                    RoundedRectangle(cornerRadius: 3)
                         .fill(progressGradient)
-                        .frame(width: max(0, geo.size.width * playerState.progress), height: 5)
-
-                    // Diamond playhead indicator (iPod 5G signature)
-                    DiamondShape()
-                        .fill(screenTextColor)
-                        .frame(width: 7, height: 7)
-                        .offset(x: max(0, min(geo.size.width - 7, geo.size.width * playerState.progress - 3.5)))
+                        .frame(width: max(0, geo.size.width * playerState.progress), height: 7)
                 }
 
                 // Time labels
                 HStack {
                     Text(Track.formatTime(playerState.playbackPosition))
-                        .font(.system(size: 8, design: .monospaced))
+                        .font(.system(size: 9, design: .monospaced))
                     Spacer()
                     Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(.system(size: 8, design: .monospaced))
+                        .font(.system(size: 9, design: .monospaced))
                 }
                 .foregroundColor(screenTextColor.opacity(0.6))
             }
         }
-        .frame(height: 18)
+        .frame(height: 22)
     }
 }
 
@@ -398,11 +392,11 @@ struct ColorSelectionView: View {
     @ObservedObject var viewModel: iPodViewModel
 
     private let screenTextColor = Color.black
-    // Authentic iPod highlight gradient: #73C9FF → #006DB0
+    // iPod 5G blue highlight gradient (Aqua-style)
     private let highlightGradient = LinearGradient(
         colors: [
-            Color(red: 0.45, green: 0.79, blue: 1.0),   // #73C9FF
-            Color(red: 0.0, green: 0.43, blue: 0.69)    // #006DB0
+            Color(red: 0.30, green: 0.67, blue: 0.95),  // Lighter blue top
+            Color(red: 0.0, green: 0.50, blue: 0.85)    // Darker blue bottom
         ],
         startPoint: .top,
         endPoint: .bottom
