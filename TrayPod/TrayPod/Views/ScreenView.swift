@@ -44,8 +44,8 @@ struct ScreenView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.black)
 
-            // LCD screen area - white background
-            RoundedRectangle(cornerRadius: 4)
+            // LCD screen area - white background (sharp top, rounded bottom)
+            BottomRoundedRectangle(radius: 4)
                 .fill(screenBackgroundColor)
                 .padding(bezelPadding)
 
@@ -94,7 +94,7 @@ struct ScreenView: View {
                     .clipped()
             }
             .padding(bezelPadding)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .clipShape(BottomRoundedRectangle(radius: 4))
         }
         .frame(width: screenWidth, height: screenHeight)
         .fixedSize()  // Prevent parent from affecting size
@@ -287,7 +287,7 @@ struct NowPlayingView: View {
     // MARK: - Design System
     private let screenTextColor = Color.black
     private let artworkSize: CGFloat = 70
-    private let horizontalPadding: CGFloat = 10  // Consistent padding
+    private let horizontalPadding: CGFloat = 11  // 10% increase for iPod 5G styling
     private let bodyFont = Font.custom("Helvetica Neue", size: 11).weight(.bold)
     private let smallFont = Font.custom("Helvetica Neue", size: 10).weight(.bold)
 
@@ -304,17 +304,16 @@ struct NowPlayingView: View {
             if let track = track {
                 // Track position "1 of 1" left-aligned above album artwork
                 Text("1 of 1")
-                    .font(smallFont)
+                    .font(bodyFont)
                     .foregroundColor(screenTextColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, 2)
+                    .padding(.top, 4)
 
                 // Main content: Album art LEFT, details RIGHT (vertically centered)
                 HStack(alignment: .center, spacing: 10) {
                     // Album artwork on left
                     albumArtwork(for: track)
-                        .shadow(color: Color.black.opacity(0.25), radius: 2, x: 1, y: 1)
 
                     // Track info on right - vertically centered with album art
                     VStack(alignment: .leading, spacing: 4) {
@@ -338,7 +337,7 @@ struct NowPlayingView: View {
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, 2)
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
                 // Progress bar at bottom - pushed up closer to content
                 progressBar
@@ -392,7 +391,7 @@ struct NowPlayingView: View {
                     }
                 }
                 .frame(width: artworkSize, height: artworkSize)
-                .clipShape(RoundedRectangle(cornerRadius: 3))
+                .clipShape(Rectangle())
             } else {
                 placeholderArtwork
             }
@@ -400,7 +399,7 @@ struct NowPlayingView: View {
     }
 
     private var placeholderArtwork: some View {
-        RoundedRectangle(cornerRadius: 3)
+        Rectangle()
             .fill(
                 LinearGradient(
                     colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.25)],
@@ -429,26 +428,27 @@ struct NowPlayingView: View {
     private var progressBar: some View {
         GeometryReader { geo in
             VStack(spacing: 3) {
-                // iPod 5G progress bar - taller, more prominent
+                // iPod 5G progress bar - sharp edges with downward shadow
                 ZStack(alignment: .leading) {
-                    // Background track - gray unfilled portion
-                    RoundedRectangle(cornerRadius: 4)
+                    // Background track - gray unfilled portion with downward shadow
+                    Rectangle()
                         .fill(Color.gray.opacity(0.35))
                         .frame(height: 14)
+                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 2)
 
                     // Filled progress with blue gradient
-                    RoundedRectangle(cornerRadius: 4)
+                    Rectangle()
                         .fill(progressGradient)
                         .frame(width: max(0, geo.size.width * playerState.progress), height: 14)
                 }
 
-                // Time labels - using design system font
+                // Time labels - unified 11pt bold font
                 HStack {
                     Text(Track.formatTime(playerState.playbackPosition))
-                        .font(smallFont)
+                        .font(bodyFont)
                     Spacer()
                     Text("-" + Track.formatTime(playerState.remainingTime))
-                        .font(smallFont)
+                        .font(bodyFont)
                 }
                 .foregroundColor(screenTextColor)
             }
@@ -457,7 +457,26 @@ struct NowPlayingView: View {
     }
 }
 
-// MARK: - Diamond Shape
+// MARK: - Custom Shapes
+
+/// Screen shape with only bottom corners rounded (top is sharp for title bar)
+struct BottomRoundedRectangle: Shape {
+    var radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addArc(center: CGPoint(x: rect.maxX - radius, y: rect.maxY - radius),
+                    radius: radius, startAngle: .zero, endAngle: .degrees(90), clockwise: false)
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addArc(center: CGPoint(x: rect.minX + radius, y: rect.maxY - radius),
+                    radius: radius, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false)
+        path.closeSubpath()
+        return path
+    }
+}
 
 struct DiamondShape: Shape {
     func path(in rect: CGRect) -> Path {
