@@ -37,9 +37,9 @@ struct iPodView: View {
 
                 Spacer()
 
-                // Click wheel - flush with body
+                // Click wheel - centered in lower area
                 ClickWheelView(viewModel: viewModel)
-                    .padding(.bottom, 25)
+                    .padding(.bottom, 45)
             }
             .padding(.horizontal, 25)
 
