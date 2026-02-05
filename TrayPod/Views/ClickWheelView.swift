@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ClickWheelView: View {
     @ObservedObject var viewModel: iPodViewModel
@@ -200,9 +201,11 @@ class WheelNSView: NSView {
 
     override func scrollWheel(with event: NSEvent) {
         // Use scrollingDeltaY for smooth trackpad scrolling
-        // Lower threshold to catch more scroll events
         let delta = event.scrollingDeltaY
         if abs(delta) > 0.1 {
+            // Trigger haptic directly on scroll (like freewrite)
+            // This gives immediate feedback regardless of selection state
+            NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
             onScroll?(delta)
         }
     }
