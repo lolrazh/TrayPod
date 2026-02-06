@@ -14,7 +14,7 @@ class SoundManager {
     // missing piezo transducer mechanical filtering.
     private let clickFrequency: Float = 3000.0
     private let clickDuration: Float = 0.004
-    private let clickAmplitude: Float = 0.2
+    private let clickAmplitude: Float = 0.08
     private let decayRate: Float = 1200.0
     private let sampleRate: Double = 44100.0
 

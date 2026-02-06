@@ -9,22 +9,33 @@ import AppKit
 class HapticManager {
     static let shared = HapticManager()
 
+    // Taptic Engine needs ~10ms to actuate + settle. Firing faster
+    // than this causes the system to swallow some ticks silently.
+    private var lastScrollHapticTime: CFAbsoluteTime = 0
+    private let minScrollInterval: CFAbsoluteTime = 0.025
+
     private init() {}
 
-    /// Scroll tick — single levelChange tap (wheel rotation / volume step)
+    /// Scroll tick — levelChange tap (wheel rotation / volume step)
+    /// Designed for discrete value stepping, feels like a light detent.
+    /// Debounced at 25ms to stay within the Taptic Engine's reliable range.
     func scrollTick() {
+        let now = CFAbsoluteTimeGetCurrent()
+        guard now - lastScrollHapticTime >= minScrollInterval else { return }
+        lastScrollHapticTime = now
+
         let performer = NSHapticFeedbackManager.defaultPerformer
         performer.perform(.levelChange, performanceTime: .now)
     }
 
-    /// Button press — double-tap pattern simulating mechanical click
-    /// The 15ms-spaced taps blur into one "thicker" perceived click,
-    /// matching how the real iPod's piezo + rubber dome felt together.
+    /// Button press — alignment snap (heavier than levelChange)
+    /// Uses .alignment instead of a double-tap pattern because:
+    /// - asyncAfter has ~1ms jitter making double-taps inconsistent
+    /// - The Taptic Engine needs ~10ms recovery, so rapid taps coalesce
+    /// - .alignment is a physically distinct, heavier actuator pattern
+    ///   designed for "snapping to position" — feels like a mechanical click
     func buttonPress() {
         let performer = NSHapticFeedbackManager.defaultPerformer
-        performer.perform(.levelChange, performanceTime: .now)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.015) {
-            performer.perform(.levelChange, performanceTime: .now)
-        }
+        performer.perform(.alignment, performanceTime: .now)
     }
 }

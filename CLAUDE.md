@@ -100,6 +100,29 @@ open ~/Library/Developer/Xcode/DerivedData/TrayPod-*/Build/Products/Debug/TrayPo
 
 ## Design Principles & Learnings
 
+### iPod 5G Sound Design (Piezo Click Synthesis)
+
+**The real iPod 5G** used a piezoelectric transducer (not a speaker) driven by a hardware register on the PortalPlayer PP5022 chip. Rockbox reverse-engineered the parameters: waveform `0xF0`, frequency register `0x5B`, period 26-27, duration 4-5ms. It was one identical click for ALL interactions — the perceived difference between scroll and button press came from the mechanical rubber dome click, not a different electronic sound.
+
+**Our implementation** synthesizes this with `AVAudioEngine`:
+- Pre-render a **3 kHz sine burst with exponential decay** into an `AVAudioPCMBuffer` at init (~176 samples, 4ms)
+- `AVAudioPlayerNode.scheduleBuffer()` for playback — **~1-3ms latency** (vs 50-200ms from the old `AudioServicesPlaySystemSound`)
+- Engine stays running for app lifetime; buffer is scheduled on demand
+- Exponential decay (`e^(-1200t)`) compensates for the missing piezo transducer mechanical filtering
+
+**Tunable parameters in `SoundManager.swift`:**
+| Parameter | Default | Effect |
+|-----------|---------|--------|
+| `clickFrequency` | 3000 Hz | Higher = brighter/sharper, lower = duller |
+| `clickDuration` | 0.004s | Longer = more tonal, shorter = more percussive |
+| `clickAmplitude` | 0.2 | Volume (0.0-1.0) |
+| `decayRate` | 1200 | Higher = faster fadeout, lower = more ring |
+
+**Feedback split — matching iPod 5G behavior:**
+- **Scroll ticks** (wheel rotation, volume steps): single `.levelChange` haptic + click sound
+- **Button presses** (center, menu, play/pause, fwd/back): double-tap `.levelChange` haptic (15ms apart) + click sound
+- Haptic fires FIRST (5-15ms system latency), then audio (1-3ms) — keeps them perceptually synchronized
+
 ### Haptic Feedback on macOS
 
 **Key insight:** macOS trackpad haptics via `NSHapticFeedbackManager` are subtle. To make them feel substantial:
