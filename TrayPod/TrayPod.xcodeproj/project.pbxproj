@@ -26,6 +26,7 @@
 		A1000019001 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000019000 /* PlayerViewModel.swift */; };
 		A1000020001 /* iPodAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* iPodAnimations.swift */; };
 		A1000021001 /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* StatusBarView.swift */; };
+		A1000022001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* BatteryService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +52,7 @@
 		A1000019000 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		A1000020000 /* iPodAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPodAnimations.swift; sourceTree = "<group>"; };
 		A1000021000 /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
+		A1000022000 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,6 +151,7 @@
 			children = (
 				A1000017000 /* MusicServiceProtocol.swift */,
 				A1000018000 /* SpotifyService.swift */,
+				A1000022000 /* BatteryService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -259,6 +262,7 @@
 				A1000019001 /* PlayerViewModel.swift in Sources */,
 				A1000020001 /* iPodAnimations.swift in Sources */,
 				A1000021001 /* StatusBarView.swift in Sources */,
+				A1000022001 /* BatteryService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ScreenView: View {
     @ObservedObject var viewModel: iPodViewModel
+    @ObservedObject private var battery = BatteryService.shared
 
     // iPod 5G (Video) - cool blue-tinted LCD background
     private let screenBackgroundColor = Color(red: 0.93, green: 0.95, blue: 0.98)
@@ -160,30 +161,42 @@ struct ScreenView: View {
         }
     }
 
-    // Battery with subtle inner shadow and gray outline
+    // Battery synced to real device level (event-driven via IOKit)
+    // Desktop Macs without a battery always show full.
     private var batteryIndicator: some View {
         let batteryWidth: CGFloat = 16
         let batteryHeight: CGFloat = 7
+        let level = CGFloat(battery.batteryLevel)
+
+        let fillGradient = LinearGradient(
+            colors: level <= 0.2 && !battery.isCharging
+                ? [Color(red: 0.25, green: 0.04, blue: 0.04),
+                   Color(red: 0.90, green: 0.22, blue: 0.18)]
+                : [Color(red: 0.04, green: 0.18, blue: 0.04),
+                   Color(red: 0.55, green: 0.92, blue: 0.50)],
+            startPoint: .bottom,
+            endPoint: .top
+        )
 
         return HStack(spacing: 0) {
-            // Battery body — simple dark-to-light gradient
-            RoundedRectangle(cornerRadius: 1.5)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.04, green: 0.18, blue: 0.04),  // Very dark green
-                            Color(red: 0.55, green: 0.92, blue: 0.50)   // Bright light green
-                        ],
-                        startPoint: .bottom,
-                        endPoint: .top
-                    )
-                )
-                .frame(width: batteryWidth, height: batteryHeight)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .stroke(Color(red: 0.30, green: 0.32, blue: 0.36), lineWidth: 0.75)
-                )
-                .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
+            // Battery body — fill proportional to level
+            ZStack(alignment: .leading) {
+                // Empty background
+                Rectangle()
+                    .fill(Color(red: 0.50, green: 0.52, blue: 0.55).opacity(0.25))
+
+                // Proportional fill
+                Rectangle()
+                    .fill(fillGradient)
+                    .frame(width: batteryWidth * level)
+            }
+            .frame(width: batteryWidth, height: batteryHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 1.5))
+            .overlay(
+                RoundedRectangle(cornerRadius: 1.5)
+                    .stroke(Color(red: 0.30, green: 0.32, blue: 0.36), lineWidth: 0.75)
+            )
+            .shadow(color: coolBlack.opacity(0.18), radius: 1.5, y: 0.8)
 
             // Battery tip/nub
             RoundedRectangle(cornerRadius: 0.5)
