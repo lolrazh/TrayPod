@@ -14,6 +14,7 @@ class iPodViewModel: ObservableObject {
     @Published var currentScreen: MenuScreen = .main
     @Published var selectedIndex: Int = 0
     @Published var navigationStack: [MenuScreen] = []
+    @Published var transitionDirection: Edge = .trailing
 
     @Published var soundEnabled: Bool {
         didSet {
@@ -27,8 +28,9 @@ class iPodViewModel: ObservableObject {
         }
     }
 
-    // Player state
+    // Player state - forward changes to trigger view updates
     let playerViewModel = PlayerViewModel()
+    private var playerCancellable: AnyCancellable?
 
     // Scroll accumulator for smooth scrolling
     private var scrollAccumulator: CGFloat = 0
@@ -37,22 +39,28 @@ class iPodViewModel: ObservableObject {
     // Volume control on Now Playing
     private let volumeStep: Float = 0.05
 
-    // MARK: - Menu Items
+    // MARK: - Menu Items (iPod 5G style - text only, no icons)
 
     var mainMenuItems: [MenuItem] {
         [
-            MenuItem(title: "Now Playing", icon: "play.fill", action: .navigate(.nowPlaying)),
-            MenuItem(title: "Settings", icon: "gearshape.fill", action: .navigate(.settings))
+            MenuItem(title: "Music", action: .navigate(.nowPlaying)),
+            MenuItem(title: "Photos", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Videos", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Extras", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Settings", action: .navigate(.settings)),
+            MenuItem(title: "Shuffle Songs", action: .custom { [weak self] in
+                self?.playerViewModel.togglePlayPause()  // Just play for now
+            })
         ]
     }
 
     var settingsMenuItems: [MenuItem] {
         [
-            MenuItem(title: "Color", icon: "paintpalette.fill", action: .navigate(.colorSelection)),
-            MenuItem(title: "Sounds: \(soundEnabled ? "On" : "Off")", icon: "speaker.wave.2.fill", action: .custom { [weak self] in
+            MenuItem(title: "Color", action: .navigate(.colorSelection)),
+            MenuItem(title: "Sounds: \(soundEnabled ? "On" : "Off")", action: .custom { [weak self] in
                 self?.soundEnabled.toggle()
             }),
-            MenuItem(title: "Haptics: \(hapticEnabled ? "On" : "Off")", icon: "hand.tap.fill", action: .custom { [weak self] in
+            MenuItem(title: "Haptics: \(hapticEnabled ? "On" : "Off")", action: .custom { [weak self] in
                 self?.hapticEnabled.toggle()
             })
         ]
@@ -80,6 +88,13 @@ class iPodViewModel: ObservableObject {
         self.selectedColor = PersistenceManager.shared.selectedColor
         self.soundEnabled = PersistenceManager.shared.soundEnabled
         self.hapticEnabled = PersistenceManager.shared.hapticEnabled
+
+        // Forward playerViewModel changes to trigger view updates
+        playerCancellable = playerViewModel.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
     }
 
     // MARK: - Click Wheel Actions
@@ -113,7 +128,7 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .colorSelection:
@@ -125,19 +140,19 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .nowPlaying:
             // On now playing, wheel controls volume
             let volumeDelta = Float(offset) * volumeStep
             playerViewModel.adjustVolume(by: volumeDelta)
-            playFeedback()
+            playScrollFeedback()
         }
     }
 
     func centerButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
 
         switch currentScreen {
         case .main, .settings:
@@ -153,6 +168,9 @@ class iPodViewModel: ObservableObject {
                 playerViewModel.togglePlayPause()
             case .custom(let action):
                 action()
+            case .none:
+                // Placeholder item - do nothing
+                break
             }
 
         case .colorSelection:
@@ -168,22 +186,22 @@ class iPodViewModel: ObservableObject {
     }
 
     func menuButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         goBack()
     }
 
     func playPauseButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.togglePlayPause()
     }
 
     func nextButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.nextTrack()
     }
 
     func previousButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.previousTrack()
     }
 
@@ -191,22 +209,26 @@ class iPodViewModel: ObservableObject {
 
     private func navigateTo(_ screen: MenuScreen) {
         navigationStack.append(currentScreen)
-        currentScreen = screen
+        transitionDirection = .trailing // Push right when navigating forward
 
-        // Set initial selection for color screen
-        if screen == .colorSelection {
-            if let currentColorIndex = iPodColor.allCases.firstIndex(of: selectedColor) {
-                selectedIndex = currentColorIndex
-            } else {
-                selectedIndex = 0
-            }
+        let newIndex: Int
+        if screen == .colorSelection,
+           let colorIndex = iPodColor.allCases.firstIndex(of: selectedColor) {
+            newIndex = colorIndex
         } else {
-            selectedIndex = 0
+            newIndex = 0
+        }
+
+        withAnimation(iPodAnimation.standard) {
+            currentScreen = screen
+            selectedIndex = newIndex
         }
     }
 
     func goBack() {
-        if let previousScreen = navigationStack.popLast() {
+        guard let previousScreen = navigationStack.popLast() else { return }
+        transitionDirection = .leading // Push left when going back
+        withAnimation(iPodAnimation.standard) {
             currentScreen = previousScreen
             selectedIndex = 0
         }
@@ -214,17 +236,31 @@ class iPodViewModel: ObservableObject {
 
     func selectColor(_ color: iPodColor) {
         selectedColor = color
-        playFeedback()
+        playButtonFeedback()
     }
 
     // MARK: - Feedback
+    // iPod 5G used one identical piezo click for all interactions.
+    // The perceived difference: scroll ticks = piezo only (light haptic),
+    // button presses = piezo + mechanical rubber dome (stronger haptic).
+    // Fire haptic FIRST (higher latency ~5-15ms) then audio (~1-3ms)
+    // to keep them perceptually synchronized.
 
-    private func playFeedback() {
+    private func playScrollFeedback() {
+        if hapticEnabled {
+            HapticManager.shared.scrollTick()
+        }
         if soundEnabled {
             SoundManager.shared.playClick()
         }
+    }
+
+    private func playButtonFeedback() {
         if hapticEnabled {
-            HapticManager.shared.click()
+            HapticManager.shared.buttonPress()
+        }
+        if soundEnabled {
+            SoundManager.shared.playClick()
         }
     }
 }

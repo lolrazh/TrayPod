@@ -128,7 +128,7 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .colorSelection:
@@ -140,19 +140,19 @@ class iPodViewModel: ObservableObject {
 
             if clampedIndex != selectedIndex {
                 selectedIndex = clampedIndex
-                playFeedback()
+                playScrollFeedback()
             }
 
         case .nowPlaying:
             // On now playing, wheel controls volume
             let volumeDelta = Float(offset) * volumeStep
             playerViewModel.adjustVolume(by: volumeDelta)
-            playFeedback()
+            playScrollFeedback()
         }
     }
 
     func centerButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
 
         switch currentScreen {
         case .main, .settings:
@@ -186,22 +186,22 @@ class iPodViewModel: ObservableObject {
     }
 
     func menuButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         goBack()
     }
 
     func playPauseButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.togglePlayPause()
     }
 
     func nextButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.nextTrack()
     }
 
     func previousButtonPressed() {
-        playFeedback()
+        playButtonFeedback()
         playerViewModel.previousTrack()
     }
 
@@ -236,17 +236,31 @@ class iPodViewModel: ObservableObject {
 
     func selectColor(_ color: iPodColor) {
         selectedColor = color
-        playFeedback()
+        playButtonFeedback()
     }
 
     // MARK: - Feedback
+    // iPod 5G used one identical piezo click for all interactions.
+    // The perceived difference: scroll ticks = piezo only (light haptic),
+    // button presses = piezo + mechanical rubber dome (stronger haptic).
+    // Fire haptic FIRST (higher latency ~5-15ms) then audio (~1-3ms)
+    // to keep them perceptually synchronized.
 
-    private func playFeedback() {
+    private func playScrollFeedback() {
+        if hapticEnabled {
+            HapticManager.shared.scrollTick()
+        }
         if soundEnabled {
             SoundManager.shared.playClick()
         }
+    }
+
+    private func playButtonFeedback() {
         if hapticEnabled {
-            HapticManager.shared.click()
+            HapticManager.shared.buttonPress()
+        }
+        if soundEnabled {
+            SoundManager.shared.playClick()
         }
     }
 }

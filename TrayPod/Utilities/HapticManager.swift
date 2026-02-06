@@ -2,40 +2,29 @@ import Foundation
 import AppKit
 
 // MARK: - Haptic Manager using NSHapticFeedbackManager
-// Uses double-tap pattern with levelChange for stronger perceived feedback
+// iPod 5G feedback: scroll ticks get a single tap, button presses
+// get a double-tap pattern to simulate the mechanical click of the
+// rubber dome switch underneath the click wheel surface.
 
 class HapticManager {
     static let shared = HapticManager()
 
-    enum HapticType {
-        case weak      // Single light tap
-        case medium    // Single strong tap
-        case strong    // Double-tap pattern (feels more substantial)
-    }
-
     private init() {}
 
-    func click() {
-        tap(type: .strong)
+    /// Scroll tick — single levelChange tap (wheel rotation / volume step)
+    func scrollTick() {
+        let performer = NSHapticFeedbackManager.defaultPerformer
+        performer.perform(.levelChange, performanceTime: .now)
     }
 
-    func tap(type: HapticType = .strong) {
+    /// Button press — double-tap pattern simulating mechanical click
+    /// The 15ms-spaced taps blur into one "thicker" perceived click,
+    /// matching how the real iPod's piezo + rubber dome felt together.
+    func buttonPress() {
         let performer = NSHapticFeedbackManager.defaultPerformer
-
-        switch type {
-        case .weak:
-            performer.perform(.generic, performanceTime: .now)
-
-        case .medium:
+        performer.perform(.levelChange, performanceTime: .now)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.015) {
             performer.perform(.levelChange, performanceTime: .now)
-
-        case .strong:
-            // Double-tap pattern: main tap + echo tap
-            // Creates "thicker" perceived feedback
-            performer.perform(.levelChange, performanceTime: .now)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.015) {
-                performer.perform(.levelChange, performanceTime: .now)
-            }
         }
     }
 }
