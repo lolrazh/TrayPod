@@ -88,6 +88,21 @@ class SpotifyService: MusicServiceProtocol {
     @objc private func handlePlaybackStateChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo else { return }
 
+        // DEBUG: Log every notification to a file to identify seek behavior
+        let ts = ISO8601DateFormatter().string(from: Date())
+        let keys = userInfo.map { "  \($0.key): \($0.value)" }.sorted().joined(separator: "\n")
+        let entry = "\n=== [\(ts)] ===\n\(keys)\n"
+        let path = "/tmp/traypod_debug.log"
+        if FileManager.default.fileExists(atPath: path) {
+            if let fh = FileHandle(forWritingAtPath: path) {
+                fh.seekToEndOfFile()
+                fh.write(entry.data(using: .utf8)!)
+                fh.closeFile()
+            }
+        } else {
+            FileManager.default.createFile(atPath: path, contents: entry.data(using: .utf8))
+        }
+
         // Parse player state
         let playerState = userInfo["Player State"] as? String ?? "Unknown"
         _isPlaying = (playerState == "Playing")
@@ -178,6 +193,28 @@ class SpotifyService: MusicServiceProtocol {
 
     deinit {
         DistributedNotificationCenter.default().removeObserver(self)
+    }
+
+    // MARK: - Position Sync (catch seeks in Spotify)
+
+    /// Lightweight AppleScript call (~50-100ms) to get actual position.
+    /// Used by the progress timer to detect seek drift.
+    func currentPlayerPosition() -> TimeInterval? {
+        guard isRunning else { return nil }
+        let script = """
+            tell application "Spotify"
+                return player position
+            end tell
+        """
+        guard let result = executeAppleScript(script) else { return nil }
+        return Double(result)
+    }
+
+    /// Reset interpolation baseline after detected drift (e.g. user seeked in Spotify)
+    func correctPosition(to position: TimeInterval) {
+        _playbackPosition = position
+        lastUpdateTime = Date()
+        stateChangedSubject.send()
     }
 
     // MARK: - Artwork
