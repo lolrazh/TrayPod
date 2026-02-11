@@ -158,6 +158,14 @@ struct ScreenView: View {
             return "Settings"
         case .colorSelection:
             return "Color"
+        case .playlists:
+            return "Playlists"
+        case .playlistDetail(_, let name):
+            return name
+        case .artists:
+            return "Artists"
+        case .songs:
+            return "Songs"
         }
     }
 
@@ -214,8 +222,24 @@ struct ScreenView: View {
             case .nowPlaying:
                 NowPlayingView(viewModel: viewModel, playerViewModel: viewModel.playerViewModel)
                     .drawingGroup()
-case .colorSelection:
+            case .colorSelection:
                 ColorSelectionView(viewModel: viewModel)
+            case .playlists:
+                BrowseScreenView(state: viewModel.browseViewModel.playlistsState, emptyMessage: "No Playlists") {
+                    MenuListView(viewModel: viewModel)
+                }
+            case .playlistDetail:
+                BrowseScreenView(state: viewModel.browseViewModel.playlistTracksState, emptyMessage: "No Tracks") {
+                    MenuListView(viewModel: viewModel)
+                }
+            case .artists:
+                BrowseScreenView(state: viewModel.browseViewModel.artistsState, emptyMessage: "No Artists") {
+                    MenuListView(viewModel: viewModel)
+                }
+            case .songs:
+                BrowseScreenView(state: viewModel.browseViewModel.songsState, emptyMessage: "No Saved Songs") {
+                    MenuListView(viewModel: viewModel)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -497,6 +521,62 @@ struct TopRoundedRectangle: Shape {
         // Close path
         path.closeSubpath()
         return path
+    }
+}
+
+// MARK: - Browse Screen (Loading / Error / Content)
+
+struct BrowseScreenView<T, Content: View>: View {
+    let state: BrowseViewModel.LoadState<T>
+    let emptyMessage: String
+    @ViewBuilder let content: () -> Content
+
+    private let screenTextColor = Color.black
+
+    var body: some View {
+        switch state {
+        case .idle, .loading:
+            VStack(spacing: 6) {
+                Spacer()
+                ProgressView()
+                    .scaleEffect(0.6)
+                Text("Loading...")
+                    .font(.custom("Helvetica Neue", size: 11).weight(.medium))
+                    .foregroundColor(screenTextColor.opacity(0.5))
+                Spacer()
+            }
+        case .loaded(let data):
+            if isEmpty(data) {
+                VStack {
+                    Spacer()
+                    Text(emptyMessage)
+                        .font(.custom("Helvetica Neue", size: 11).weight(.medium))
+                        .foregroundColor(screenTextColor.opacity(0.5))
+                    Spacer()
+                }
+            } else {
+                content()
+            }
+        case .error(let message):
+            VStack(spacing: 4) {
+                Spacer()
+                Text("Error")
+                    .font(.custom("Helvetica Neue", size: 11).weight(.bold))
+                    .foregroundColor(screenTextColor)
+                Text(message)
+                    .font(.custom("Helvetica Neue", size: 9))
+                    .foregroundColor(screenTextColor.opacity(0.5))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+        }
+    }
+
+    private func isEmpty(_ data: T) -> Bool {
+        if let array = data as? [Any] { return array.isEmpty }
+        return false
     }
 }
 

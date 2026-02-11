@@ -8,11 +8,12 @@ class PlayerViewModel: ObservableObject {
     @Published var isAdjustingVolume: Bool = false
 
     private var musicService: MusicServiceProtocol?
-    private let spotifyService = SpotifyService()
+    let spotifyService = SpotifyService()
 
     private var cancellables = Set<AnyCancellable>()
     private var progressTimer: Timer?
     private var volumeIdleTimer: Timer?
+    private var progressSyncCounter = 0
 
     /// How long to show volume bar after last adjustment
     private let volumeIdleTimeout: TimeInterval = 1.5
@@ -78,8 +79,24 @@ class PlayerViewModel: ObservableObject {
     }
 
     private func updateProgress() {
-        guard musicService != nil, state.isPlaying else { return }
-        // Get interpolated position (no AppleScript call)
+        guard musicService != nil, state.isPlaying else {
+            progressSyncCounter = 0
+            return
+        }
+
+        progressSyncCounter += 1
+
+        // Every 2 seconds (4 × 0.5s), verify position via AppleScript
+        // to catch seeks in Spotify that don't fire a notification.
+        if progressSyncCounter % 4 == 0 {
+            if let actual = spotifyService.currentPlayerPosition() {
+                let interpolated = spotifyService.playbackPosition
+                if abs(actual - interpolated) > 2.0 {
+                    spotifyService.correctPosition(to: actual)
+                }
+            }
+        }
+
         state.playbackPosition = spotifyService.playbackPosition
     }
 

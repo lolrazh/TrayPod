@@ -31,8 +31,10 @@ class iPodViewModel: ObservableObject {
 
     // Player state - forward changes to trigger view updates
     let playerViewModel = PlayerViewModel()
+    let browseViewModel = BrowseViewModel()
     private var playerCancellable: AnyCancellable?
     private var authCancellable: AnyCancellable?
+    private var browseCancellable: AnyCancellable?
 
     // Scroll accumulator for smooth scrolling
     private var scrollAccumulator: CGFloat = 0
@@ -45,19 +47,27 @@ class iPodViewModel: ObservableObject {
     // MARK: - Menu Items (iPod 5G style - text only, no icons)
 
     var mainMenuItems: [MenuItem] {
-        [
-            MenuItem(title: "Music", action: .navigate(.nowPlaying)),
-            MenuItem(title: "Photos", action: .none),     // Placeholder - not functional
-            MenuItem(title: "Videos", action: .none),     // Placeholder - not functional
-            MenuItem(title: "Extras", action: .none),     // Placeholder - not functional
-            MenuItem(title: "Merch", action: .custom { [weak self] in
-                self?.openMerchURL()
-            }),
-            MenuItem(title: "Settings", action: .navigate(.settings)),
-            MenuItem(title: "Shuffle Songs", action: .custom { [weak self] in
-                self?.playerViewModel.togglePlayPause()  // Just play for now
-            })
-        ]
+        var items: [MenuItem] = []
+
+        // Show Now Playing only when a track is active
+        if playerViewModel.state.currentTrack != nil {
+            items.append(MenuItem(title: "Now Playing", action: .navigate(.nowPlaying)))
+        }
+
+        if SpotifyAuthManager.shared.isSignedIn {
+            items.append(MenuItem(title: "Playlists", action: .navigate(.playlists)))
+            items.append(MenuItem(title: "Artists", action: .navigate(.artists)))
+            items.append(MenuItem(title: "Songs", action: .navigate(.songs)))
+        } else {
+            items.append(MenuItem(title: "Music", action: .navigate(.nowPlaying)))
+        }
+
+        items.append(MenuItem(title: "Settings", action: .navigate(.settings)))
+        items.append(MenuItem(title: "Shuffle Songs", action: .custom { [weak self] in
+            self?.playerViewModel.togglePlayPause()
+        }))
+
+        return items
     }
 
     var settingsMenuItems: [MenuItem] {
@@ -91,8 +101,48 @@ class iPodViewModel: ObservableObject {
             return mainMenuItems
         case .settings:
             return settingsMenuItems
+        case .playlists:
+            return playlistMenuItems
+        case .playlistDetail:
+            return playlistDetailMenuItems
+        case .artists:
+            return artistMenuItems
+        case .songs:
+            return songMenuItems
         case .nowPlaying, .colorSelection:
             return []
+        }
+    }
+
+    private var playlistMenuItems: [MenuItem] {
+        guard case .loaded(let playlists) = browseViewModel.playlistsState else { return [] }
+        return playlists.map { playlist in
+            MenuItem(title: playlist.name, action: .navigate(.playlistDetail(id: playlist.id, name: playlist.name)))
+        }
+    }
+
+    private var playlistDetailMenuItems: [MenuItem] {
+        guard case .loaded(let tracks) = browseViewModel.playlistTracksState else { return [] }
+        return tracks.map { track in
+            MenuItem(title: track.title, action: .custom { [weak self] in
+                self?.playTrack(track)
+            })
+        }
+    }
+
+    private var artistMenuItems: [MenuItem] {
+        guard case .loaded(let artists) = browseViewModel.artistsState else { return [] }
+        return artists.map { artist in
+            MenuItem(title: artist.name, action: .none)
+        }
+    }
+
+    private var songMenuItems: [MenuItem] {
+        guard case .loaded(let tracks) = browseViewModel.songsState else { return [] }
+        return tracks.map { track in
+            MenuItem(title: track.title, action: .custom { [weak self] in
+                self?.playTrack(track)
+            })
         }
     }
 
@@ -117,6 +167,17 @@ class iPodViewModel: ObservableObject {
 
         // Forward auth state changes to trigger settings menu update
         authCancellable = SpotifyAuthManager.shared.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+                // Clear browse cache on sign-out
+                if !SpotifyAuthManager.shared.isSignedIn {
+                    self?.browseViewModel.clearCache()
+                }
+            }
+
+        // Forward browse state changes to trigger menu updates
+        browseCancellable = browseViewModel.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -145,7 +206,7 @@ class iPodViewModel: ObservableObject {
 
     private func moveSelection(by offset: Int) {
         switch currentScreen {
-        case .main, .settings:
+        case .main, .settings, .playlists, .playlistDetail, .artists, .songs:
             let itemCount = currentMenuItems.count
             guard itemCount > 0 else { return }
 
@@ -181,7 +242,7 @@ class iPodViewModel: ObservableObject {
         playButtonFeedback()
 
         switch currentScreen {
-        case .main, .settings:
+        case .main, .settings, .playlists, .playlistDetail, .artists, .songs:
             let items = currentMenuItems
             guard selectedIndex < items.count else { return }
 
@@ -195,18 +256,15 @@ class iPodViewModel: ObservableObject {
             case .custom(let action):
                 action()
             case .none:
-                // Placeholder item - do nothing
                 break
             }
 
         case .colorSelection:
-            // Select the highlighted color
             let colors = iPodColor.allCases
             guard selectedIndex < colors.count else { return }
             selectedColor = colors[selectedIndex]
 
         case .nowPlaying:
-            // Toggle play/pause
             playerViewModel.togglePlayPause()
         }
     }
@@ -245,10 +303,49 @@ class iPodViewModel: ObservableObject {
             newIndex = 0
         }
 
+        // Trigger async data loading for browse screens
+        switch screen {
+        case .playlists:
+            browseViewModel.loadPlaylists()
+        case .playlistDetail(let id, _):
+            browseViewModel.loadPlaylistTracks(id: id)
+        case .artists:
+            browseViewModel.loadArtists()
+        case .songs:
+            browseViewModel.loadSongs()
+        default:
+            break
+        }
+
         withAnimation(iPodAnimation.standard) {
             currentScreen = screen
             selectedIndex = newIndex
         }
+    }
+
+    // MARK: - Play Track
+
+    func playTrack(_ track: Track) {
+        guard let uri = track.spotifyURI else { return }
+
+        // Try AppleScript first (desktop app), fall back to Web API
+        if playerViewModel.spotifyService.isRunning {
+            let script = """
+                tell application "Spotify"
+                    play track "\(uri)"
+                end tell
+            """
+            var error: NSDictionary?
+            if let appleScript = NSAppleScript(source: script) {
+                appleScript.executeAndReturnError(&error)
+            }
+        } else {
+            Task {
+                try? await SpotifyWebAPIClient.shared.play(trackURIs: [uri])
+            }
+        }
+
+        navigateTo(.nowPlaying)
     }
 
     func goBack() {

@@ -6,13 +6,15 @@ struct Track: Equatable {
     let album: String
     let duration: TimeInterval
     let artworkURL: URL?
+    let spotifyURI: String?
 
-    init(title: String, artist: String, album: String, duration: TimeInterval, artworkURL: URL? = nil) {
+    init(title: String, artist: String, album: String, duration: TimeInterval, artworkURL: URL? = nil, spotifyURI: String? = nil) {
         self.title = title
         self.artist = artist
         self.album = album
         self.duration = duration
         self.artworkURL = artworkURL
+        self.spotifyURI = spotifyURI
     }
 
     var formattedDuration: String {

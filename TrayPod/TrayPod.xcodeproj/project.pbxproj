@@ -29,6 +29,9 @@
 		A1000022001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* BatteryService.swift */; };
 		A1000023001 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023000 /* KeychainHelper.swift */; };
 		A1000024001 /* SpotifyAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024000 /* SpotifyAuthManager.swift */; };
+		A1000025001 /* SpotifyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025000 /* SpotifyModels.swift */; };
+		A1000026001 /* SpotifyWebAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026000 /* SpotifyWebAPIClient.swift */; };
+		A1000027001 /* BrowseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000027000 /* BrowseViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +60,9 @@
 		A1000022000 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
 		A1000023000 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		A1000024000 /* SpotifyAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthManager.swift; sourceTree = "<group>"; };
+		A1000025000 /* SpotifyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyModels.swift; sourceTree = "<group>"; };
+		A1000026000 /* SpotifyWebAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyWebAPIClient.swift; sourceTree = "<group>"; };
+		A1000027000 /* BrowseViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +141,7 @@
 			children = (
 				A1000006000 /* iPodViewModel.swift */,
 				A1000019000 /* PlayerViewModel.swift */,
+				A1000027000 /* BrowseViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -146,6 +153,7 @@
 				A1000008000 /* MenuItem.swift */,
 				A1000015000 /* Track.swift */,
 				A1000016000 /* PlayerState.swift */,
+				A1000025000 /* SpotifyModels.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -158,6 +166,7 @@
 				A1000022000 /* BatteryService.swift */,
 				A1000023000 /* KeychainHelper.swift */,
 				A1000024000 /* SpotifyAuthManager.swift */,
+				A1000026000 /* SpotifyWebAPIClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -271,6 +280,9 @@
 				A1000022001 /* BatteryService.swift in Sources */,
 				A1000023001 /* KeychainHelper.swift in Sources */,
 				A1000024001 /* SpotifyAuthManager.swift in Sources */,
+				A1000025001 /* SpotifyModels.swift in Sources */,
+				A1000026001 /* SpotifyWebAPIClient.swift in Sources */,
+				A1000027001 /* BrowseViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -40,9 +40,13 @@ enum MenuAction: Equatable {
     }
 }
 
-enum MenuScreen: Equatable {
+enum MenuScreen: Equatable, Hashable {
     case main
     case nowPlaying
     case settings
     case colorSelection
+    case playlists
+    case playlistDetail(id: String, name: String)
+    case artists
+    case songs
 }
