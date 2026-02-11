@@ -27,6 +27,8 @@
 		A1000020001 /* iPodAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* iPodAnimations.swift */; };
 		A1000021001 /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* StatusBarView.swift */; };
 		A1000022001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* BatteryService.swift */; };
+		A1000023001 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023000 /* KeychainHelper.swift */; };
+		A1000024001 /* SpotifyAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024000 /* SpotifyAuthManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +55,8 @@
 		A1000020000 /* iPodAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPodAnimations.swift; sourceTree = "<group>"; };
 		A1000021000 /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
 		A1000022000 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
+		A1000023000 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		A1000024000 /* SpotifyAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAuthManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +156,8 @@
 				A1000017000 /* MusicServiceProtocol.swift */,
 				A1000018000 /* SpotifyService.swift */,
 				A1000022000 /* BatteryService.swift */,
+				A1000023000 /* KeychainHelper.swift */,
+				A1000024000 /* SpotifyAuthManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -263,6 +269,8 @@
 				A1000020001 /* iPodAnimations.swift in Sources */,
 				A1000021001 /* StatusBarView.swift in Sources */,
 				A1000022001 /* BatteryService.swift in Sources */,
+				A1000023001 /* KeychainHelper.swift in Sources */,
+				A1000024001 /* SpotifyAuthManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

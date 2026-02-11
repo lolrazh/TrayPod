@@ -32,5 +32,16 @@
 	<string>NSApplication</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>TrayPod needs to send commands to music apps to control playback.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.traypod.callback</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>traypod</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

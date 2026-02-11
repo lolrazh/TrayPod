@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupMenuBar()
         setupPopover()
         setupEventMonitor()
+        setupURLHandler()
 
         // Initialize haptic manager early
         _ = HapticManager.shared
@@ -62,6 +63,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             // Ensure the popover window becomes key to receive keyboard events
             popover.contentViewController?.view.window?.makeKey()
+        }
+    }
+
+    // MARK: - URL Scheme Handler (traypod://callback)
+
+    private func setupURLHandler() {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleGetURL(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+    }
+
+    @objc private func handleGetURL(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
+        guard let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+              let url = URL(string: urlString) else { return }
+
+        Task { @MainActor in
+            SpotifyAuthManager.shared.handleCallback(url: url)
         }
     }
 

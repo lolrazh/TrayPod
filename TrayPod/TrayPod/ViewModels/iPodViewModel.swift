@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import AppKit
 
 @MainActor
 class iPodViewModel: ObservableObject {
@@ -31,6 +32,7 @@ class iPodViewModel: ObservableObject {
     // Player state - forward changes to trigger view updates
     let playerViewModel = PlayerViewModel()
     private var playerCancellable: AnyCancellable?
+    private var authCancellable: AnyCancellable?
 
     // Scroll accumulator for smooth scrolling
     private var scrollAccumulator: CGFloat = 0
@@ -38,6 +40,7 @@ class iPodViewModel: ObservableObject {
 
     // Volume control on Now Playing
     private let volumeStep: Float = 0.05
+    private let merchURLInfoKey = "TrayPodMerchURL"
 
     // MARK: - Menu Items (iPod 5G style - text only, no icons)
 
@@ -47,6 +50,9 @@ class iPodViewModel: ObservableObject {
             MenuItem(title: "Photos", action: .none),     // Placeholder - not functional
             MenuItem(title: "Videos", action: .none),     // Placeholder - not functional
             MenuItem(title: "Extras", action: .none),     // Placeholder - not functional
+            MenuItem(title: "Merch", action: .custom { [weak self] in
+                self?.openMerchURL()
+            }),
             MenuItem(title: "Settings", action: .navigate(.settings)),
             MenuItem(title: "Shuffle Songs", action: .custom { [weak self] in
                 self?.playerViewModel.togglePlayPause()  // Just play for now
@@ -55,7 +61,7 @@ class iPodViewModel: ObservableObject {
     }
 
     var settingsMenuItems: [MenuItem] {
-        [
+        var items: [MenuItem] = [
             MenuItem(title: "Color", action: .navigate(.colorSelection)),
             MenuItem(title: "Sounds: \(soundEnabled ? "On" : "Off")", action: .custom { [weak self] in
                 self?.soundEnabled.toggle()
@@ -64,6 +70,19 @@ class iPodViewModel: ObservableObject {
                 self?.hapticEnabled.toggle()
             })
         ]
+
+        // Spotify sign in/out
+        if SpotifyAuthManager.shared.isSignedIn {
+            items.append(MenuItem(title: "Sign Out of Spotify", action: .custom {
+                SpotifyAuthManager.shared.signOut()
+            }))
+        } else {
+            items.append(MenuItem(title: "Sign In to Spotify", action: .custom {
+                SpotifyAuthManager.shared.startSignIn()
+            }))
+        }
+
+        return items
     }
 
     var currentMenuItems: [MenuItem] {
@@ -91,6 +110,13 @@ class iPodViewModel: ObservableObject {
 
         // Forward playerViewModel changes to trigger view updates
         playerCancellable = playerViewModel.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+
+        // Forward auth state changes to trigger settings menu update
+        authCancellable = SpotifyAuthManager.shared.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
@@ -237,6 +263,15 @@ class iPodViewModel: ObservableObject {
     func selectColor(_ color: iPodColor) {
         selectedColor = color
         playButtonFeedback()
+    }
+
+    private func openMerchURL() {
+        guard
+            let merchURLString = Bundle.main.object(forInfoDictionaryKey: merchURLInfoKey) as? String,
+            let merchURL = URL(string: merchURLString)
+        else { return }
+
+        NSWorkspace.shared.open(merchURL)
     }
 
     // MARK: - Feedback
