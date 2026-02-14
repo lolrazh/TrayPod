@@ -12,6 +12,10 @@ class SpotifyConnectService: MusicServiceProtocol {
     private let tokenManager = SpotifyTokenManager()
     private lazy var connectSession = SpotifyConnectSession(tokenManager: tokenManager)
 
+    // MARK: - Search & Library
+
+    private lazy var graphQL = SpotifyGraphQL(tokenManager: tokenManager)
+
     // MARK: - Constants
 
     private let connectStateBase = "https://gue1-spclient.spotify.com/connect-state/v1"
@@ -358,6 +362,112 @@ class SpotifyConnectService: MusicServiceProtocol {
         sendCommand("play", extraFields: [
             "context": ["uri": uri]
         ])
+    }
+
+    // MARK: - Search & Library (Protocol)
+
+    func search(query: String) async throws -> SearchResults {
+        try await graphQL.search(query: query)
+    }
+
+    func getPlaylists() async throws -> [Playlist] {
+        let tokens = try await tokenManager.getTokens()
+        return try await fetchWebAPI("https://api.spotify.com/v1/me/playlists?limit=50", tokens: tokens) { json in
+            guard let items = json["items"] as? [[String: Any]] else { return [] }
+            return items.map { item in
+                Playlist(
+                    id: item["id"] as? String ?? "",
+                    name: item["name"] as? String ?? "",
+                    trackCount: (item["tracks"] as? [String: Any])?["total"] as? Int ?? 0,
+                    ownerName: (item["owner"] as? [String: Any])?["display_name"] as? String ?? ""
+                )
+            }
+        }
+    }
+
+    func getPlaylistTracks(id: String) async throws -> [Track] {
+        let tokens = try await tokenManager.getTokens()
+        return try await fetchWebAPI("https://api.spotify.com/v1/playlists/\(id)/tracks?limit=50", tokens: tokens) { json in
+            guard let items = json["items"] as? [[String: Any]] else { return [] }
+            return items.compactMap { item -> Track? in
+                guard let track = item["track"] as? [String: Any] else { return nil }
+                return Self.parseWebAPITrack(track)
+            }
+        }
+    }
+
+    func getSavedAlbums() async throws -> [Album] {
+        let tokens = try await tokenManager.getTokens()
+        return try await fetchWebAPI("https://api.spotify.com/v1/me/albums?limit=50", tokens: tokens) { json in
+            guard let items = json["items"] as? [[String: Any]] else { return [] }
+            return items.compactMap { item -> Album? in
+                guard let album = item["album"] as? [String: Any] else { return nil }
+                let artists = (album["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? ""
+                return Album(
+                    id: album["id"] as? String ?? "",
+                    name: album["name"] as? String ?? "",
+                    artistName: artists,
+                    trackCount: album["total_tracks"] as? Int ?? 0
+                )
+            }
+        }
+    }
+
+    func getAlbumTracks(id: String) async throws -> [Track] {
+        let tokens = try await tokenManager.getTokens()
+        return try await fetchWebAPI("https://api.spotify.com/v1/albums/\(id)/tracks?limit=50", tokens: tokens) { json in
+            guard let items = json["items"] as? [[String: Any]] else { return [] }
+            return items.map { Self.parseWebAPITrack($0) }
+        }
+    }
+
+    func getSavedTracks(offset: Int, limit: Int) async throws -> [Track] {
+        let tokens = try await tokenManager.getTokens()
+        return try await fetchWebAPI("https://api.spotify.com/v1/me/tracks?limit=\(limit)&offset=\(offset)", tokens: tokens) { json in
+            guard let items = json["items"] as? [[String: Any]] else { return [] }
+            return items.compactMap { item -> Track? in
+                guard let track = item["track"] as? [String: Any] else { return nil }
+                return Self.parseWebAPITrack(track)
+            }
+        }
+    }
+
+    // MARK: - Web API Helpers
+
+    private func fetchWebAPI<T>(_ urlString: String, tokens: SpotifyTokenManager.Tokens, parse: ([String: Any]) -> T) async throws -> T {
+        var request = URLRequest(url: URL(string: urlString)!)
+        request.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200...299).contains(statusCode) else {
+            throw NSError(domain: "SpotifyAPI", code: statusCode,
+                          userInfo: [NSLocalizedDescriptionKey: "API call failed: HTTP \(statusCode)"])
+        }
+
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw NSError(domain: "SpotifyAPI", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Invalid JSON"])
+        }
+
+        return parse(json)
+    }
+
+    private static func parseWebAPITrack(_ dict: [String: Any]) -> Track {
+        let uri = dict["uri"] as? String ?? ""
+        let name = dict["name"] as? String ?? ""
+        let artists = (dict["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String }.joined(separator: ", ") ?? ""
+        let albumName = (dict["album"] as? [String: Any])?["name"] as? String ?? ""
+        let durationMs = dict["duration_ms"] as? Int ?? 0
+
+        return Track(
+            id: uri,
+            title: name,
+            artist: artists,
+            album: albumName,
+            duration: TimeInterval(durationMs) / 1000.0
+        )
     }
 
     // MARK: - Command Sending

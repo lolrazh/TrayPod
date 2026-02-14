@@ -35,6 +35,7 @@
 		A1000029001 /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000029000 /* Playlist.swift */; };
 		A1000030001 /* SearchResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000030000 /* SearchResults.swift */; };
 		A1000031001 /* SearchInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000031000 /* SearchInputView.swift */; };
+		A1000032001 /* SpotifyGraphQL.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032000 /* SpotifyGraphQL.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 		A1000029000 /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
 		A1000030000 /* SearchResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResults.swift; sourceTree = "<group>"; };
 		A1000031000 /* SearchInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputView.swift; sourceTree = "<group>"; };
+		A1000032000 /* SpotifyGraphQL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyGraphQL.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +176,7 @@
 				A1000022000 /* BatteryService.swift */,
 				A1000026000 /* SpotifyConnectSession.swift */,
 				A1000027000 /* SpotifyConnectService.swift */,
+				A1000032000 /* SpotifyGraphQL.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -303,6 +306,7 @@
 				A1000029001 /* Playlist.swift in Sources */,
 				A1000030001 /* SearchResults.swift in Sources */,
 				A1000031001 /* SearchInputView.swift in Sources */,
+				A1000032001 /* SpotifyGraphQL.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
