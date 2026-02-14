@@ -30,6 +30,7 @@
 		A1000023001 /* ChromeCookieExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023000 /* ChromeCookieExtractor.swift */; };
 		A1000024001 /* TOTPGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024000 /* TOTPGenerator.swift */; };
 		A1000025001 /* SpotifyTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025000 /* SpotifyTokenManager.swift */; };
+		A1000026001 /* SpotifyConnectSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026000 /* SpotifyConnectSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,6 +60,7 @@
 		A1000023000 /* ChromeCookieExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeCookieExtractor.swift; sourceTree = "<group>"; };
 		A1000024000 /* TOTPGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TOTPGenerator.swift; sourceTree = "<group>"; };
 		A1000025000 /* SpotifyTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTokenManager.swift; sourceTree = "<group>"; };
+		A1000026000 /* SpotifyConnectSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyConnectSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,6 +161,7 @@
 				A1000017000 /* MusicServiceProtocol.swift */,
 				A1000018000 /* SpotifyService.swift */,
 				A1000022000 /* BatteryService.swift */,
+				A1000026000 /* SpotifyConnectSession.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -283,6 +286,7 @@
 				A1000023001 /* ChromeCookieExtractor.swift in Sources */,
 				A1000024001 /* TOTPGenerator.swift in Sources */,
 				A1000025001 /* SpotifyTokenManager.swift in Sources */,
+				A1000026001 /* SpotifyConnectSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
