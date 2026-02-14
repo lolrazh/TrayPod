@@ -27,6 +27,9 @@
 		A1000020001 /* iPodAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020000 /* iPodAnimations.swift */; };
 		A1000021001 /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000021000 /* StatusBarView.swift */; };
 		A1000022001 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022000 /* BatteryService.swift */; };
+		A1000023001 /* ChromeCookieExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000023000 /* ChromeCookieExtractor.swift */; };
+		A1000024001 /* TOTPGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024000 /* TOTPGenerator.swift */; };
+		A1000025001 /* SpotifyTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025000 /* SpotifyTokenManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +56,9 @@
 		A1000020000 /* iPodAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iPodAnimations.swift; sourceTree = "<group>"; };
 		A1000021000 /* StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarView.swift; sourceTree = "<group>"; };
 		A1000022000 /* BatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryService.swift; sourceTree = "<group>"; };
+		A1000023000 /* ChromeCookieExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeCookieExtractor.swift; sourceTree = "<group>"; };
+		A1000024000 /* TOTPGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TOTPGenerator.swift; sourceTree = "<group>"; };
+		A1000025000 /* SpotifyTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTokenManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,11 +155,22 @@
 		A1SVCGROUP0 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				A1AUTHGRP0 /* Auth */,
 				A1000017000 /* MusicServiceProtocol.swift */,
 				A1000018000 /* SpotifyService.swift */,
 				A1000022000 /* BatteryService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		A1AUTHGRP0 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				A1000023000 /* ChromeCookieExtractor.swift */,
+				A1000024000 /* TOTPGenerator.swift */,
+				A1000025000 /* SpotifyTokenManager.swift */,
+			);
+			path = Auth;
 			sourceTree = "<group>";
 		};
 		A1UTILGROUP /* Utilities */ = {
@@ -263,6 +280,9 @@
 				A1000020001 /* iPodAnimations.swift in Sources */,
 				A1000021001 /* StatusBarView.swift in Sources */,
 				A1000022001 /* BatteryService.swift in Sources */,
+				A1000023001 /* ChromeCookieExtractor.swift in Sources */,
+				A1000024001 /* TOTPGenerator.swift in Sources */,
+				A1000025001 /* SpotifyTokenManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

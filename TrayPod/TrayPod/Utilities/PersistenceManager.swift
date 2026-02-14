@@ -41,4 +41,36 @@ class PersistenceManager {
         get { defaults.object(forKey: Keys.autoLaunchEnabled) as? Bool ?? false }
         set { defaults.set(newValue, forKey: Keys.autoLaunchEnabled) }
     }
+
+    // MARK: - Spotify Cookie Storage
+
+    struct SpotifyCookies: Codable {
+        let spDc: String
+        let spT: String?
+    }
+
+    func saveSpotifyCookies(spDc: String, spT: String?) {
+        let cookies = SpotifyCookies(spDc: spDc, spT: spT)
+        let url = cookieStoragePath()
+        try? FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try? JSONEncoder().encode(cookies).write(to: url)
+    }
+
+    func loadSpotifyCookies() -> SpotifyCookies? {
+        let url = cookieStoragePath()
+        guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(SpotifyCookies.self, from: data)
+    }
+
+    func clearSpotifyCookies() {
+        try? FileManager.default.removeItem(at: cookieStoragePath())
+    }
+
+    private func cookieStoragePath() -> URL {
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        return appSupport.appendingPathComponent("TrayPod/cookies.json")
+    }
 }
