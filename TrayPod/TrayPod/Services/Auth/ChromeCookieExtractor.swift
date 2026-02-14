@@ -2,8 +2,9 @@ import Foundation
 import CommonCrypto
 import SQLite3
 
-/// Extracts and decrypts Spotify cookies (sp_dc, sp_t) from Chrome's cookie database on macOS.
-/// Uses Keychain to get Chrome's encryption password, PBKDF2 for key derivation, AES-128-CBC for decryption.
+/// Extracts and decrypts Spotify cookies (sp_dc, sp_t) from Chromium-based browsers on macOS.
+/// Supports Dia, Chrome, and other Chromium forks.
+/// Uses Keychain for encryption password, PBKDF2 for key derivation, AES-128-CBC for decryption.
 struct ChromeCookieExtractor {
 
     struct CookieResult {
@@ -22,25 +23,71 @@ struct ChromeCookieExtractor {
         var errorDescription: String? {
             switch self {
             case .keychainFailed(let msg): return "Keychain access failed: \(msg)"
-            case .cookieDBNotFound: return "Chrome cookie database not found"
+            case .cookieDBNotFound: return "Browser cookie database not found"
             case .cookieDBCopyFailed: return "Failed to copy cookie database"
             case .sqliteOpenFailed(let msg): return "SQLite error: \(msg)"
-            case .noCookiesFound: return "No Spotify cookies found in Chrome"
+            case .noCookiesFound: return "No Spotify cookies found in browser"
             case .decryptionFailed(let msg): return "Cookie decryption failed: \(msg)"
             }
         }
     }
 
-    /// Extract sp_dc and sp_t cookies from Chrome's cookie database
+    /// Supported Chromium-based browsers, tried in order
+    private struct BrowserConfig {
+        let name: String
+        let keychainAccount: String
+        let keychainService: String
+        let cookiePaths: [String] // relative to ~/Library/Application Support/
+    }
+
+    private static let browsers: [BrowserConfig] = [
+        BrowserConfig(
+            name: "Dia",
+            keychainAccount: "Dia",
+            keychainService: "Dia Safe Storage",
+            cookiePaths: [
+                "Dia/User Data/Default/Cookies",
+                "Dia/User Data/Default/Network/Cookies"
+            ]
+        ),
+        BrowserConfig(
+            name: "Chrome",
+            keychainAccount: "Chrome",
+            keychainService: "Chrome Safe Storage",
+            cookiePaths: [
+                "Google/Chrome/Default/Network/Cookies",
+                "Google/Chrome/Default/Cookies"
+            ]
+        ),
+    ]
+
+    /// Extract sp_dc and sp_t cookies, trying each supported browser in order
     static func extractCookies() throws -> CookieResult {
-        // 1. Get Chrome's encryption password from Keychain
-        let password = try getChromeKeychainPassword()
+        var lastError: Error = ExtractionError.cookieDBNotFound
+
+        for browser in browsers {
+            do {
+                let result = try extractFromBrowser(browser)
+                print("[CookieExtractor] Successfully extracted cookies from \(browser.name)")
+                return result
+            } catch {
+                print("[CookieExtractor] \(browser.name) failed: \(error.localizedDescription)")
+                lastError = error
+            }
+        }
+
+        throw lastError
+    }
+
+    private static func extractFromBrowser(_ browser: BrowserConfig) throws -> CookieResult {
+        // 1. Get browser's encryption password from Keychain
+        let password = try getKeychainPassword(account: browser.keychainAccount, service: browser.keychainService)
 
         // 2. Derive AES-128 key via PBKDF2
         let key = try deriveKey(from: password)
 
         // 3. Copy cookie DB to temp location (avoids WAL lock conflicts)
-        let tempDBPath = try copyCookieDB()
+        let tempDBPath = try copyCookieDB(cookiePaths: browser.cookiePaths)
         defer { try? FileManager.default.removeItem(atPath: tempDBPath) }
 
         // 4. Query for Spotify cookies
@@ -66,10 +113,10 @@ struct ChromeCookieExtractor {
 
     // MARK: - Keychain
 
-    private static func getChromeKeychainPassword() throws -> String {
+    private static func getKeychainPassword(account: String, service: String) throws -> String {
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/security")
-        process.arguments = ["find-generic-password", "-w", "-a", "Chrome", "-s", "Chrome Safe Storage"]
+        process.arguments = ["find-generic-password", "-w", "-a", account, "-s", service]
 
         let pipe = Pipe()
         process.standardOutput = pipe
@@ -79,13 +126,13 @@ struct ChromeCookieExtractor {
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
-            throw ExtractionError.keychainFailed("security command exited with status \(process.terminationStatus)")
+            throw ExtractionError.keychainFailed("\(service): security exited with status \(process.terminationStatus)")
         }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let password = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
               !password.isEmpty else {
-            throw ExtractionError.keychainFailed("Empty password returned")
+            throw ExtractionError.keychainFailed("\(service): empty password")
         }
 
         return password
@@ -128,20 +175,20 @@ struct ChromeCookieExtractor {
 
     // MARK: - Cookie DB Copy
 
-    private static func copyCookieDB() throws -> String {
+    private static func copyCookieDB(cookiePaths: [String]) throws -> String {
         let home = FileManager.default.homeDirectoryForCurrentUser
+        let appSupport = home.appendingPathComponent("Library/Application Support")
 
-        // Chrome 96+ stores cookies in Network/ subdirectory
-        let primaryPath = home.appendingPathComponent("Library/Application Support/Google/Chrome/Default/Network/Cookies")
-        // Older Chrome stores cookies directly in Default/
-        let fallbackPath = home.appendingPathComponent("Library/Application Support/Google/Chrome/Default/Cookies")
+        var sourcePath: String?
+        for relativePath in cookiePaths {
+            let fullPath = appSupport.appendingPathComponent(relativePath).path
+            if FileManager.default.fileExists(atPath: fullPath) {
+                sourcePath = fullPath
+                break
+            }
+        }
 
-        let sourcePath: String
-        if FileManager.default.fileExists(atPath: primaryPath.path) {
-            sourcePath = primaryPath.path
-        } else if FileManager.default.fileExists(atPath: fallbackPath.path) {
-            sourcePath = fallbackPath.path
-        } else {
+        guard let source = sourcePath else {
             throw ExtractionError.cookieDBNotFound
         }
 
@@ -149,7 +196,7 @@ struct ChromeCookieExtractor {
             .appendingPathComponent("traypod_cookies_\(UUID().uuidString).db").path
 
         do {
-            try FileManager.default.copyItem(atPath: sourcePath, toPath: tempPath)
+            try FileManager.default.copyItem(atPath: source, toPath: tempPath)
         } catch {
             throw ExtractionError.cookieDBCopyFailed
         }
