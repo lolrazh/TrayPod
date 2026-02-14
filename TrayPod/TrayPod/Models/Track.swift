@@ -1,13 +1,15 @@
 import Foundation
 
 struct Track: Equatable {
+    let id: String
     let title: String
     let artist: String
     let album: String
     let duration: TimeInterval
     let artworkURL: URL?
 
-    init(title: String, artist: String, album: String, duration: TimeInterval, artworkURL: URL? = nil) {
+    init(id: String = "", title: String, artist: String, album: String, duration: TimeInterval, artworkURL: URL? = nil) {
+        self.id = id
         self.title = title
         self.artist = artist
         self.album = album

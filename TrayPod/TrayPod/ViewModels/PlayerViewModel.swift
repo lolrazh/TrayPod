@@ -8,7 +8,7 @@ class PlayerViewModel: ObservableObject {
     @Published var isAdjustingVolume: Bool = false
 
     private var musicService: MusicServiceProtocol?
-    private let spotifyService = SpotifyService()
+    private let connectService = SpotifyConnectService()
 
     private var cancellables = Set<AnyCancellable>()
     private var progressTimer: Timer?
@@ -18,9 +18,8 @@ class PlayerViewModel: ObservableObject {
     private let volumeIdleTimeout: TimeInterval = 1.5
 
     init() {
-        setupNotificationListener()
+        setupStateListener()
         startProgressTimer()
-        checkInitialState()
     }
 
     deinit {
@@ -28,11 +27,11 @@ class PlayerViewModel: ObservableObject {
         volumeIdleTimer?.invalidate()
     }
 
-    // MARK: - Real-time Notification Listener
+    // MARK: - State Listener
 
-    private func setupNotificationListener() {
-        // Subscribe to Spotify's real-time state changes
-        spotifyService.stateChanged
+    private func setupStateListener() {
+        // Subscribe to Connect service state changes (polling-based)
+        connectService.stateChanged
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.updateFromService()
@@ -40,36 +39,29 @@ class PlayerViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    private func checkInitialState() {
-        // Check if Spotify is running on launch
-        if spotifyService.isRunning {
-            updateFromService()
-        }
-    }
-
-    /// Update state from service (called on notifications)
+    /// Update state from Connect service
     private func updateFromService() {
-        if spotifyService.isRunning {
-            musicService = spotifyService
-            activeServiceName = spotifyService.serviceName
+        if connectService.isRunning {
+            musicService = connectService
+            activeServiceName = connectService.serviceName
 
             state = PlayerState(
-                isPlaying: spotifyService.isPlaying,
-                currentTrack: spotifyService.currentTrack,
-                playbackPosition: spotifyService.playbackPosition,
-                volume: state.volume // Keep current volume (don't query)
+                isPlaying: connectService.isPlaying,
+                currentTrack: connectService.currentTrack,
+                playbackPosition: connectService.playbackPosition,
+                volume: connectService.volume
             )
         } else {
             musicService = nil
-            activeServiceName = "No Music App"
+            activeServiceName = "Connecting..."
             state = PlayerState()
         }
     }
 
-    // MARK: - Progress Timer (lightweight, no AppleScript)
+    // MARK: - Progress Timer
 
     private func startProgressTimer() {
-        // Update progress bar every 0.5s by interpolating locally
+        // Interpolate progress bar every 0.5s between polls
         progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.updateProgress()
@@ -79,15 +71,13 @@ class PlayerViewModel: ObservableObject {
 
     private func updateProgress() {
         guard musicService != nil, state.isPlaying else { return }
-        // Get interpolated position (no AppleScript call)
-        state.playbackPosition = spotifyService.playbackPosition
+        state.playbackPosition = connectService.playbackPosition
     }
 
     // MARK: - Playback Controls
 
     func togglePlayPause() {
         musicService?.togglePlayPause()
-        // Update state immediately for responsiveness
         state.isPlaying.toggle()
     }
 
@@ -103,12 +93,10 @@ class PlayerViewModel: ObservableObject {
 
     func nextTrack() {
         musicService?.nextTrack()
-        // State will update via notification
     }
 
     func previousTrack() {
         musicService?.previousTrack()
-        // State will update via notification
     }
 
     func seek(to position: TimeInterval) {
@@ -122,7 +110,6 @@ class PlayerViewModel: ObservableObject {
         service.volume = newVolume
         state.volume = newVolume
 
-        // Show volume bar and reset idle timer
         showVolumeOverlay()
     }
 
