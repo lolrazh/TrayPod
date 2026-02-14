@@ -346,15 +346,15 @@ class SpotifyConnectService: MusicServiceProtocol {
         sendCommand("seek_to", extraFields: ["value": posMs])
     }
 
-    /// Play a specific track or context URI
-    func playURI(_ uri: String) {
+    /// Play a specific track URI (protocol method)
+    func playTrack(uri: String) {
         sendCommand("play", extraFields: [
             "options": ["skip_to": ["track_uri": uri]]
         ])
     }
 
-    /// Play a context (album/playlist) URI
-    func playContext(_ uri: String) {
+    /// Play a context (album/playlist) URI (protocol method)
+    func playContext(uri: String) {
         sendCommand("play", extraFields: [
             "context": ["uri": uri]
         ])

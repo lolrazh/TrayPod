@@ -158,6 +158,22 @@ struct ScreenView: View {
             return "Settings"
         case .colorSelection:
             return "Color"
+        case .musicMenu:
+            return "Music"
+        case .playlists:
+            return "Playlists"
+        case .playlistDetail(_, let name):
+            return name
+        case .albums:
+            return "Albums"
+        case .albumDetail(_, let name):
+            return name
+        case .songs:
+            return "Songs"
+        case .search:
+            return "Search"
+        case .searchResults:
+            return "Results"
         }
     }
 
@@ -209,13 +225,16 @@ struct ScreenView: View {
     private var screenContent: some View {
         Group {
             switch viewModel.currentScreen {
-            case .main, .settings:
+            case .main, .settings, .musicMenu, .playlists, .albums, .songs,
+                 .playlistDetail, .albumDetail, .searchResults:
                 MenuListView(viewModel: viewModel)
             case .nowPlaying:
                 NowPlayingView(viewModel: viewModel, playerViewModel: viewModel.playerViewModel)
                     .drawingGroup()
-case .colorSelection:
+            case .colorSelection:
                 ColorSelectionView(viewModel: viewModel)
+            case .search:
+                SearchInputView(viewModel: viewModel)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

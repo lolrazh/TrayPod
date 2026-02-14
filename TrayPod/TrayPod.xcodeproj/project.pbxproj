@@ -31,6 +31,10 @@
 		A1000025001 /* SpotifyTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000025000 /* SpotifyTokenManager.swift */; };
 		A1000026001 /* SpotifyConnectSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026000 /* SpotifyConnectSession.swift */; };
 		A1000027001 /* SpotifyConnectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000027000 /* SpotifyConnectService.swift */; };
+		A1000028001 /* Album.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028000 /* Album.swift */; };
+		A1000029001 /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000029000 /* Playlist.swift */; };
+		A1000030001 /* SearchResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000030000 /* SearchResults.swift */; };
+		A1000031001 /* SearchInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000031000 /* SearchInputView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +65,10 @@
 		A1000025000 /* SpotifyTokenManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyTokenManager.swift; sourceTree = "<group>"; };
 		A1000026000 /* SpotifyConnectSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyConnectSession.swift; sourceTree = "<group>"; };
 		A1000027000 /* SpotifyConnectService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyConnectService.swift; sourceTree = "<group>"; };
+		A1000028000 /* Album.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Album.swift; sourceTree = "<group>"; };
+		A1000029000 /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
+		A1000030000 /* SearchResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResults.swift; sourceTree = "<group>"; };
+		A1000031000 /* SearchInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +129,7 @@
 				A1000003000 /* iPodView.swift */,
 				A1000004000 /* ScreenView.swift */,
 				A1000005000 /* ClickWheelView.swift */,
+				A1000031000 /* SearchInputView.swift */,
 				A1COMPGROUP /* Components */,
 			);
 			path = Views;
@@ -150,6 +159,9 @@
 				A1000008000 /* MenuItem.swift */,
 				A1000015000 /* Track.swift */,
 				A1000016000 /* PlayerState.swift */,
+				A1000028000 /* Album.swift */,
+				A1000029000 /* Playlist.swift */,
+				A1000030000 /* SearchResults.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -287,6 +299,10 @@
 				A1000024001 /* TOTPGenerator.swift in Sources */,
 				A1000025001 /* SpotifyTokenManager.swift in Sources */,
 				A1000026001 /* SpotifyConnectSession.swift in Sources */,
+				A1000028001 /* Album.swift in Sources */,
+				A1000029001 /* Playlist.swift in Sources */,
+				A1000030001 /* SearchResults.swift in Sources */,
+				A1000031001 /* SearchInputView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

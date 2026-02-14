@@ -8,7 +8,7 @@ class PlayerViewModel: ObservableObject {
     @Published var isAdjustingVolume: Bool = false
 
     private var musicService: MusicServiceProtocol?
-    private let connectService = SpotifyConnectService()
+    private let connectService: SpotifyConnectService
 
     private var cancellables = Set<AnyCancellable>()
     private var progressTimer: Timer?
@@ -17,7 +17,8 @@ class PlayerViewModel: ObservableObject {
     /// How long to show volume bar after last adjustment
     private let volumeIdleTimeout: TimeInterval = 1.5
 
-    init() {
+    init(connectService: SpotifyConnectService) {
+        self.connectService = connectService
         setupStateListener()
         startProgressTimer()
     }

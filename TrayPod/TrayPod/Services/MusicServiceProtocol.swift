@@ -14,6 +14,16 @@ protocol MusicServiceProtocol: AnyObject {
     func nextTrack()
     func previousTrack()
     func seek(to position: TimeInterval)
+
+    // Library & Search
+    func search(query: String) async throws -> SearchResults
+    func getPlaylists() async throws -> [Playlist]
+    func getPlaylistTracks(id: String) async throws -> [Track]
+    func getSavedAlbums() async throws -> [Album]
+    func getAlbumTracks(id: String) async throws -> [Track]
+    func getSavedTracks(offset: Int, limit: Int) async throws -> [Track]
+    func playTrack(uri: String)
+    func playContext(uri: String)
 }
 
 extension MusicServiceProtocol {
@@ -24,4 +34,16 @@ extension MusicServiceProtocol {
             play()
         }
     }
+
+    // Default empty implementations for library/search
+    func search(query: String) async throws -> SearchResults {
+        SearchResults(tracks: [], albums: [], playlists: [])
+    }
+    func getPlaylists() async throws -> [Playlist] { [] }
+    func getPlaylistTracks(id: String) async throws -> [Track] { [] }
+    func getSavedAlbums() async throws -> [Album] { [] }
+    func getAlbumTracks(id: String) async throws -> [Track] { [] }
+    func getSavedTracks(offset: Int, limit: Int) async throws -> [Track] { [] }
+    func playTrack(uri: String) {}
+    func playContext(uri: String) {}
 }
