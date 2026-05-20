@@ -152,8 +152,22 @@ struct ScreenView: View {
         switch viewModel.currentScreen {
         case .main:
             return "iPod"
+        case .music:
+            return "Music"
         case .nowPlaying:
             return "Now Playing"
+        case .playlists:
+            return "Playlists"
+        case .playlistTracks:
+            return "Songs"
+        case .artists:
+            return "Artists"
+        case .albums:
+            return "Albums"
+        case .albumTracks:
+            return "Songs"
+        case .savedTracks:
+            return "Songs"
         case .settings:
             return "Settings"
         case .colorSelection:
@@ -209,12 +223,12 @@ struct ScreenView: View {
     private var screenContent: some View {
         Group {
             switch viewModel.currentScreen {
-            case .main, .settings:
+            case .main, .settings, .music, .playlists, .playlistTracks, .artists, .albums, .albumTracks, .savedTracks:
                 MenuListView(viewModel: viewModel)
             case .nowPlaying:
                 NowPlayingView(viewModel: viewModel, playerViewModel: viewModel.playerViewModel)
                     .drawingGroup()
-case .colorSelection:
+            case .colorSelection:
                 ColorSelectionView(viewModel: viewModel)
             }
         }
@@ -266,6 +280,8 @@ struct MenuListView: View {
             // iPod 5G: Text-only menus, Helvetica Neue
             Text(item.title)
                 .font(.custom("Helvetica Neue", size: 13).weight(.medium))
+                .lineLimit(1)
+                .truncationMode(.tail)
 
             Spacer()
 
@@ -367,7 +383,11 @@ struct NowPlayingView: View {
                         .foregroundColor(screenTextColor.opacity(0.5))
 
                     if !playerViewModel.hasActiveService {
-                        Text("Open Spotify to control")
+                        Text(playerViewModel.idleInstruction)
+                            .font(.custom("Helvetica Neue", size: 9))
+                            .foregroundColor(screenTextColor.opacity(0.4))
+                    } else {
+                        Text(playerViewModel.idleInstruction)
                             .font(.custom("Helvetica Neue", size: 9))
                             .foregroundColor(screenTextColor.opacity(0.4))
                     }

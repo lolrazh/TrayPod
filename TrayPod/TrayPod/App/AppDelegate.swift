@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupMenuBar()
         setupPopover()
         setupEventMonitor()
+        setupURLHandler()
 
         // Initialize haptic manager early
         _ = HapticManager.shared
@@ -53,6 +54,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func setupURLHandler() {
+        NSAppleEventManager.shared().setEventHandler(
+            self,
+            andSelector: #selector(handleURL(_:withReplyEvent:)),
+            forEventClass: AEEventClass(kInternetEventClass),
+            andEventID: AEEventID(kAEGetURL)
+        )
+    }
+
     @objc private func togglePopover() {
         guard let popover = popover, let button = statusItem?.button else { return }
 
@@ -68,6 +78,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         if let eventMonitor = eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
+        }
+    }
+
+    @objc private func handleURL(_ event: NSAppleEventDescriptor, withReplyEvent reply: NSAppleEventDescriptor) {
+        guard
+            let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+            let url = URL(string: urlString)
+        else { return }
+
+        Task {
+            await SpotifyAuthManager.shared.handleCallback(url: url)
         }
     }
 }

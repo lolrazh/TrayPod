@@ -43,6 +43,9 @@ xcodebuild -project TrayPod.xcodeproj -scheme TrayPod -configuration Debug build
 open ~/Library/Developer/Xcode/DerivedData/TrayPod-*/Build/Products/Debug/TrayPod.app
 ```
 
+> The nested project at `TrayPod/TrayPod.xcodeproj` is canonical. The root-level
+> `TrayPod.xcodeproj` is an older duplicate and is not the active build target.
+
 ---
 
 ## Development Milestones

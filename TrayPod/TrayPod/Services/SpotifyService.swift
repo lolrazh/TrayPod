@@ -88,24 +88,18 @@ class SpotifyService: MusicServiceProtocol {
     @objc private func handlePlaybackStateChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo else { return }
 
-        // DEBUG: Log every notification to a file to identify seek behavior
-        let ts = ISO8601DateFormatter().string(from: Date())
-        let keys = userInfo.map { "  \($0.key): \($0.value)" }.sorted().joined(separator: "\n")
-        let entry = "\n=== [\(ts)] ===\n\(keys)\n"
-        let path = "/tmp/traypod_debug.log"
-        if FileManager.default.fileExists(atPath: path) {
-            if let fh = FileHandle(forWritingAtPath: path) {
-                fh.seekToEndOfFile()
-                fh.write(entry.data(using: .utf8)!)
-                fh.closeFile()
-            }
-        } else {
-            FileManager.default.createFile(atPath: path, contents: entry.data(using: .utf8))
-        }
-
         // Parse player state
         let playerState = userInfo["Player State"] as? String ?? "Unknown"
         _isPlaying = (playerState == "Playing")
+
+        if playerState == "Stopped" {
+            _currentTrack = nil
+            _playbackPosition = 0
+            _duration = 0
+            lastUpdateTime = Date()
+            stateChangedSubject.send()
+            return
+        }
 
         // Parse track info
         let trackName = userInfo["Name"] as? String
@@ -134,8 +128,6 @@ class SpotifyService: MusicServiceProtocol {
                 duration: _duration,
                 artworkURL: artworkURL
             )
-        } else if playerState == "Stopped" {
-            _currentTrack = nil
         }
 
         // Record update time for interpolation
@@ -150,7 +142,7 @@ class SpotifyService: MusicServiceProtocol {
         let script = """
             tell application "Spotify"
                 if player state is stopped then
-                    return "stopped|||||||0|||0"
+                    return "stopped"
                 end if
                 set playerState to player state as string
                 set trackName to name of current track
@@ -163,6 +155,15 @@ class SpotifyService: MusicServiceProtocol {
         """
 
         guard let result = executeAppleScript(script), !result.isEmpty else { return }
+
+        if result == "stopped" {
+            _isPlaying = false
+            _currentTrack = nil
+            _playbackPosition = 0
+            _duration = 0
+            lastUpdateTime = Date()
+            return
+        }
 
         let components = result.components(separatedBy: "|||")
         guard components.count >= 6 else { return }
@@ -189,6 +190,21 @@ class SpotifyService: MusicServiceProtocol {
         }
 
         lastUpdateTime = Date()
+    }
+
+    func refreshState() {
+        guard isRunning else {
+            _isPlaying = false
+            _currentTrack = nil
+            _playbackPosition = 0
+            _duration = 0
+            lastUpdateTime = Date()
+            stateChangedSubject.send()
+            return
+        }
+
+        fetchInitialState()
+        stateChangedSubject.send()
     }
 
     deinit {
@@ -290,6 +306,16 @@ class SpotifyService: MusicServiceProtocol {
         let script = """
             tell application "Spotify"
                 set player position to \(position)
+            end tell
+        """
+        _ = executeAppleScript(script)
+    }
+
+    func play(uri: String) {
+        guard isRunning else { return }
+        let script = """
+            tell application "Spotify"
+                play track "\(uri)"
             end tell
         """
         _ = executeAppleScript(script)

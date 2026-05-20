@@ -10,6 +10,7 @@ class PersistenceManager {
         static let soundEnabled = "soundEnabled"
         static let hapticEnabled = "hapticEnabled"
         static let autoLaunchEnabled = "autoLaunchEnabled"
+        static let playerVolume = "playerVolume"
     }
 
     private init() {}
@@ -40,5 +41,15 @@ class PersistenceManager {
     var autoLaunchEnabled: Bool {
         get { defaults.object(forKey: Keys.autoLaunchEnabled) as? Bool ?? false }
         set { defaults.set(newValue, forKey: Keys.autoLaunchEnabled) }
+    }
+
+    var playerVolume: Float {
+        get {
+            guard defaults.object(forKey: Keys.playerVolume) != nil else { return 0.5 }
+            return max(0, min(1, defaults.float(forKey: Keys.playerVolume)))
+        }
+        set {
+            defaults.set(max(0, min(1, newValue)), forKey: Keys.playerVolume)
+        }
     }
 }

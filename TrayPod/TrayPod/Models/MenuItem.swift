@@ -42,7 +42,14 @@ enum MenuAction: Equatable {
 
 enum MenuScreen: Equatable {
     case main
+    case music
     case nowPlaying
+    case playlists
+    case playlistTracks
+    case artists
+    case albums
+    case albumTracks
+    case savedTracks
     case settings
     case colorSelection
 }

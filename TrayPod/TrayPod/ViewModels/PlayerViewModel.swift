@@ -1,9 +1,10 @@
 import SwiftUI
 import Combine
+import AppKit
 
 @MainActor
 class PlayerViewModel: ObservableObject {
-    @Published var state: PlayerState = PlayerState()
+    @Published var state: PlayerState = PlayerState(volume: PersistenceManager.shared.playerVolume)
     @Published var activeServiceName: String = "No Music App"
     @Published var isAdjustingVolume: Bool = false
 
@@ -19,6 +20,7 @@ class PlayerViewModel: ObservableObject {
 
     init() {
         setupNotificationListener()
+        setupApplicationLifecycleListener()
         startProgressTimer()
         checkInitialState()
     }
@@ -62,8 +64,25 @@ class PlayerViewModel: ObservableObject {
         } else {
             musicService = nil
             activeServiceName = "No Music App"
-            state = PlayerState()
+            state = PlayerState(volume: PersistenceManager.shared.playerVolume)
         }
+    }
+
+    private func setupApplicationLifecycleListener() {
+        let notificationCenter = NSWorkspace.shared.notificationCenter
+
+        notificationCenter.publisher(for: NSWorkspace.didLaunchApplicationNotification)
+            .merge(with: notificationCenter.publisher(for: NSWorkspace.didTerminateApplicationNotification))
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshServiceAvailability()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func refreshServiceAvailability() {
+        spotifyService.refreshState()
+        updateFromService()
     }
 
     // MARK: - Progress Timer (lightweight, no AppleScript)
@@ -86,13 +105,23 @@ class PlayerViewModel: ObservableObject {
     // MARK: - Playback Controls
 
     func togglePlayPause() {
-        musicService?.togglePlayPause()
+        guard let musicService else {
+            openPreferredPlayer()
+            return
+        }
+
+        musicService.togglePlayPause()
         // Update state immediately for responsiveness
         state.isPlaying.toggle()
     }
 
     func play() {
-        musicService?.play()
+        guard let musicService else {
+            openPreferredPlayer()
+            return
+        }
+
+        musicService.play()
         state.isPlaying = true
     }
 
@@ -121,6 +150,7 @@ class PlayerViewModel: ObservableObject {
         let newVolume = max(0, min(1, state.volume + delta))
         service.volume = newVolume
         state.volume = newVolume
+        PersistenceManager.shared.playerVolume = newVolume
 
         // Show volume bar and reset idle timer
         showVolumeOverlay()
@@ -147,6 +177,42 @@ class PlayerViewModel: ObservableObject {
         let clampedVolume = max(0, min(1, volume))
         service.volume = clampedVolume
         state.volume = clampedVolume
+        PersistenceManager.shared.playerVolume = clampedVolume
+    }
+
+    func playSpotifyURI(_ uri: String, isContext: Bool) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+
+            if SpotifyAuthManager.shared.isSignedIn {
+                do {
+                    try await SpotifyAPIClient.shared.startPlayback(uri: uri, isContext: isContext)
+                    return
+                } catch {
+                    // Fall back to desktop Spotify below.
+                }
+            }
+
+            if spotifyService.isRunning {
+                spotifyService.play(uri: uri)
+                musicService = spotifyService
+                activeServiceName = spotifyService.serviceName
+            } else {
+                openPreferredPlayer()
+            }
+        }
+    }
+
+    func openPreferredPlayer() {
+        if let spotifyURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.spotify.client") {
+            NSWorkspace.shared.open(spotifyURL)
+        } else if let webURL = URL(string: "https://open.spotify.com") {
+            NSWorkspace.shared.open(webURL)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.refreshServiceAvailability()
+        }
     }
 
     // MARK: - Helpers
@@ -157,5 +223,9 @@ class PlayerViewModel: ObservableObject {
 
     var canControl: Bool {
         musicService?.isRunning ?? false
+    }
+
+    var idleInstruction: String {
+        hasActiveService ? "Press Play to start" : "Press Play to open Spotify"
     }
 }
